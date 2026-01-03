@@ -1,0 +1,241 @@
+% ============================================
+% Document Class and Basic Setup
+% ============================================
+\documentclass[11pt]{article}
+
+% ============================================
+% Package Imports
+% ============================================
+% Geometry and Layout
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{xcolor}
+
+% Fonts and Encoding
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp}
+\else
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+
+% Typography
+\IfFileExists{microtype.sty}{%
+  \usepackage{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath}
+}{}
+
+% Paragraph Formatting
+\makeatletter
+\@ifundefined{KOMAClassName}{%
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{%
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}
+  }
+}{%
+  \KOMAoptions{parskip=half}
+}
+\makeatother
+
+% Math
+\usepackage{amsmath,amssymb}
+
+% Utilities
+\setlength{\emergencystretch}{3em}
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen}
+% Headers and Footers
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+
+% Graphics
+\usepackage{graphicx}
+
+% TOC Management
+\usepackage{etoolbox}
+
+% ============================================
+% Custom Title Page
+% ============================================
+\makeatletter
+\renewcommand{\maketitle}{%
+  \begin{titlepage}
+    \thispagestyle{empty}
+    \begin{center}
+      \vspace*{3cm}
+
+      % Title
+      {\Huge\bfseries\@title\par}
+      \vspace{2cm}
+
+      % Subtitle and Course
+      {\Large PB Software Development\par}
+      \vspace{0.5cm}
+      {\large Software Security\par}
+      \vspace{3cm}
+
+      % Date
+      {\large\textit{Fall 2025}\par}
+      \vfill
+
+      % Author
+      {\large\textit{Synopsis by Marco Gabel \& Fei Gu}\par}
+      \vspace{1cm}
+
+      % Logo (uncomment to use)
+      % \includegraphics[width=0.3\textwidth]{logo.png}
+    \end{center}
+  \end{titlepage}
+  \clearpage
+}
+\makeatother
+
+% ============================================
+% Headers and Footers Configuration
+% ============================================
+% Content pages style
+\pagestyle{fancy}
+\fancyhead[L]{\small\textit{Marco Gabel \& Fei Gu}}
+\fancyhead[C]{\small\textit{EASV SSD}}
+\fancyhead[R]{\small\textit{Exam Synopsis 2026}}
+\fancyfoot[C]{\small\thepage\ af \pageref{LastPage}}
+\fancyfoot[L]{}
+\fancyfoot[R]{}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+% Plain style (for title and TOC pages)
+\fancypagestyle{plain}{%
+  \fancyhf{}
+  \fancyfoot[C]{\small\thepage\ af \pageref{LastPage}}
+  \renewcommand{\headrulewidth}{0pt}
+}
+
+% ============================================
+% Table of Contents Configuration
+% ============================================
+\AtEndDocument{%
+  \addtocontents{toc}{\protect\clearpage}
+}
+% ============================================
+% Hyperlinks and PDF Metadata
+% ============================================
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{}
+\urlstyle{same}
+\hypersetup{
+  pdftitle={Exam Synopsis -- Securing CI/CD Pipeline with SNYK, CodeQL, and Trivy},
+  pdfauthor={Marco Gabel \& Fei Gu},
+  pdfkeywords={SNYK, CodeQL, Trivy, DevSecOps, CI/CD Security, CRA},
+  colorlinks=true,
+  linkcolor=blue,
+  filecolor=Maroon,
+  citecolor=Blue,
+  urlcolor=blue,
+  pdfcreator={LaTeX via pandoc}
+}
+
+% ============================================
+% Document Metadata
+% ============================================
+\title{Exam Synopsis -- Securing CI/CD Pipeline with SNYK, CodeQL, and Trivy}
+\author{Marco Gabel \& Fei Gu}
+\date{Fall 2025}
+
+% ============================================
+% Document Body
+% ============================================
+\begin{document}
+
+% Generate title page
+\maketitle
+
+% Generate table of contents
+\renewcommand*\contentsname{Table of Contents}
+{
+  \hypersetup{linkcolor=black}
+  \setcounter{tocdepth}{3}
+  \tableofcontents
+}
+
+% ============================================
+% Content Sections
+% ============================================
+
+\section{1. Introduction / Motivation}\label{introduction-motivation}
+
+% The motivation for picking this particular problem to work on should be
+% clearly communicated in the synopsis. Explain why this problem is
+% interesting for you to work and why it will be interesting for others to
+% read about. Feel free to include any background information that that is
+% required to understand the context of the problem.
+
+% The synopsis is a short documentation of your project work.
+
+\section{2. Problem Statement}\label{problem-statement}
+
+This project investigates how a CI/CD pipeline can be secured using
+automated analysis tools such as SNYK (Software Composition Analysis),
+CodeQL (Static Application Security Testing) and Trivy (Container
+Scanning). The goal is to identify vulnerabilities during the build
+process and assess how these security controls support the Cyber
+Resilience Act requirements for secure software development and
+supply-chain protection.
+
+\section{3. Implementation}\label{inplementation}
+
+\subsection{3.1 Pipeline architecture}\label{pipeline-architecture}
+
+\subsection{3.2 Tool integration details}\label{tool-integration-details}
+
+\subsection{3.3 Security findings}\label{security-findings}
+
+\subsection{3.4 CRA compliance mapping}\label{cra-compliance-mapping}
+
+% In this section you should describe how you intend to analyze and solve
+% the problem. Refer to relevant litterature or videos that contains
+% information that will help you solve the problem.
+
+% Describe in more detail how you will solve the problem: what will you
+% implement? What will you measure? How will you evaluate your
+% measurements?
+
+% And finally: What will confirm or reject your hypothesis?
+
+\section{4. Analysis \& Results}\label{analysis-results}
+
+% This is the meat of your synopsis.
+
+% You have to outline what you have done in this section. Document the
+% effort you've put into analyzing the problem and also the work you've
+% done building and implementing a solution.
+
+% This isn't your GitHub repository. You should not include all the code
+% you've written. Instead, you should include the most important parts of
+% your work.
+
+% What is important? Parts of the code that are a result of your analysis
+% and the choices you've made. Connect theory and analysis to how the code
+% is written.
+
+% Demonstrate that you understand the theory and that you can apply it to
+% solve a problem. Don't expect and plan for creating a ``product''. Write
+% only enough code, outside your main objective and focus on your problem.
+
+\section{5. Conclusion}\label{conclusion}
+
+% Summarize.
+
+% This is your chance to briefly summarize what you've done throughout the
+% project. Focus on the most important parts and takeways from your work.
+% And finally, what did you find out? Did you confirm or reject your
+% hypothesis?
+
+\end{document}
