@@ -1,0 +1,65 @@
+# NestJS Project - Financial Advisor
+# compiled output
+financial-advisor-nest-js/dist
+financial-advisor-nest-js/node_modules
+financial-advisor-nest-js/build
+
+# Logs
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# OS
+.DS_Store
+
+# Tests
+financial-advisor-nest-js/coverage
+financial-advisor-nest-js/.nyc_output
+
+# IDEs and editors
+financial-advisor-nest-js/.idea
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# IDE - VSCode
+financial-advisor-nest-js/.vscode/*
+!financial-advisor-nest-js/.vscode/settings.json
+!financial-advisor-nest-js/.vscode/tasks.json
+!financial-advisor-nest-js/.vscode/launch.json
+!financial-advisor-nest-js/.vscode/extensions.json
+
+# dotenv environment variable files
+financial-advisor-nest-js/.env
+financial-advisor-nest-js/.env.development.local
+financial-advisor-nest-js/.env.test.local
+financial-advisor-nest-js/.env.production.local
+financial-advisor-nest-js/.env.local
+
+# temp directory
+financial-advisor-nest-js/.temp
+financial-advisor-nest-js/.tmp
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Diagnostic reports (https://nodejs.org/api/report.html)
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+financial-advisor-nest-js/package-lock.json
+.idea/workspace.xml
+.idea/vcs.xml
+.idea/prettier.xml
+.idea/inspectionProfiles/Project_Default.xml
+.idea/workspace.xml
+.idea/workspace.xml
+/.idea
