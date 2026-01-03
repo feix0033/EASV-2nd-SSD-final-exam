@@ -2,7 +2,7 @@
 
 **Project**: Securing CI/CD Pipeline with SNYK, CodeQL, and Trivy
 **Focus**: Cyber Resilience Act (CRA) Compliance
-**Repository**: https://github.com/feix0033/EASV-2nd-SSD-final-exam
+**Repository**: <https://github.com/feix0033/EASV-2nd-SSD-final-exam>
 
 ---
 
