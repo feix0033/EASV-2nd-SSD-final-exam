@@ -5,7 +5,9 @@ This directory contains all project documentation for the SSD exam project.
 ## Directory Structure
 
 ### `/screenshots`
+
 Contains screenshots of security scan results:
+
 - SNYK vulnerability findings
 - CodeQL code scanning alerts
 - Trivy container scan results
@@ -13,14 +15,18 @@ Contains screenshots of security scan results:
 - CI/CD pipeline execution
 
 ### `/architecture`
+
 Contains architecture diagrams and visual representations:
+
 - Security pipeline architecture
 - Data flow diagrams
 - Tool integration diagrams
 - CRA compliance mappings
 
 ### `/reports`
+
 Contains generated security reports:
+
 - SNYK JSON reports
 - Trivy scan results
 - CodeQL SARIF files
@@ -29,12 +35,14 @@ Contains generated security reports:
 ## How to Use
 
 1. **Taking Screenshots**: After running the security pipeline, capture screenshots of:
+
    - GitHub Actions workflow runs
    - Security tab findings
    - Individual tool results
    - Vulnerability details
 
 2. **Creating Diagrams**: Use tools like:
+
    - Draw.io (https://app.diagrams.net/)
    - Excalidraw (https://excalidraw.com/)
    - Mermaid diagrams in Markdown
@@ -47,6 +55,7 @@ Contains generated security reports:
 ## Synopsis Preparation
 
 All materials in this directory should be referenced in your final synopsis:
+
 - Include screenshots as evidence
 - Reference architecture diagrams to explain implementation
 - Cite security reports to demonstrate findings
