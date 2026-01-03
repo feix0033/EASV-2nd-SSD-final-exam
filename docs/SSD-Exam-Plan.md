@@ -1,3 +1,13 @@
+---
+title: "SSD Exam - CI/CD Security Pipeline Implementation Guide"
+author: "Your Name"
+date: "2026-01-03"
+header-left: "SSD Exam - CI/CD Security Pipeline"
+header-center: "CRA Compliance"
+header-right: "Your Name"
+keywords: [SNYK, CodeQL, Trivy, DevSecOps, CI/CD Security]
+---
+
 # SSD Exam - CI/CD Security Pipeline Implementation Guide
 
 **Project**: Securing CI/CD Pipeline with SNYK, CodeQL, and Trivy
@@ -15,12 +25,14 @@ This project investigates how a CI/CD pipeline can be secured using automated an
 ## Quick Start Summary
 
 ### What Was Built
+
 ✅ **Automated Security Pipeline** - GitHub Actions workflow integrating 3 security tools
 ✅ **Sample NestJS Application** - Financial tracking app as test subject
 ✅ **Multi-stage Docker Build** - Optimized container with security scanning
 ✅ **Complete Documentation** - Screenshots, diagrams, and security reports
 
 ### Current Status
+
 - **SNYK**: ✅ Active - 119 dependencies scanned, 0 vulnerabilities found
 - **CodeQL**: ✅ Active - JavaScript/TypeScript analysis complete
 - **Trivy**: ✅ Active - 15+ container vulnerabilities detected
@@ -31,13 +43,15 @@ This project investigates how a CI/CD pipeline can be secured using automated an
 ## Project Setup
 
 ### Prerequisites
+
 - Node.js 18+
 - Docker
 - GitHub account
 - SNYK account (free tier)
 
 ### Repository Structure
-```
+
+```text
 EASV-2nd-SSD-final-exam/
 ├── .github/workflows/
 │   └── security-pipeline.yml    # Main CI/CD pipeline
@@ -54,19 +68,21 @@ EASV-2nd-SSD-final-exam/
 ### Initial Setup Steps
 
 1. **Clone Repository**
+
 ```bash
 git clone https://github.com/feix0033/EASV-2nd-SSD-final-exam.git
 cd EASV-2nd-SSD-final-exam
 ```
 
 2. **Install Dependencies**
+
 ```bash
 cd financial-advisor-nest-js
 npm install
 ```
 
 3. **Configure SNYK Token** (Required)
-   - Sign up at https://snyk.io
+   - Sign up at <https://snyk.io>
    - Get API token from Account Settings
    - Add to GitHub: Settings → Secrets → Actions → New secret
    - Name: `SNYK_TOKEN`, Value: [your token]
@@ -77,7 +93,7 @@ npm install
 
 ### Pipeline Architecture
 
-```
+```text
 Code Commit → Checkout → SNYK (SCA) → CodeQL (SAST) → Build → Trivy (Container Scan) → Security Gate
                             ↓              ↓                       ↓
                         Dependencies    Source Code          Container
@@ -89,9 +105,11 @@ Code Commit → Checkout → SNYK (SCA) → CodeQL (SAST) → Build → Trivy (C
 ### Security Tools Integration
 
 #### 1. SNYK - Software Composition Analysis (SCA)
+
 **Purpose**: Scan npm dependencies for known vulnerabilities
 
 **Configuration** (`.github/workflows/security-pipeline.yml`):
+
 ```yaml
 - name: Run SNYK to check for vulnerabilities
   working-directory: financial-advisor-nest-js
@@ -102,14 +120,17 @@ Code Commit → Checkout → SNYK (SCA) → CodeQL (SAST) → Build → Trivy (C
 ```
 
 **Results**:
+
 - Scans 119 dependencies
 - Generates SBOM
 - Reports to artifacts
 
 #### 2. CodeQL - Static Application Security Testing (SAST)
+
 **Purpose**: Analyze source code for security vulnerabilities
 
 **Configuration**:
+
 ```yaml
 - name: Initialize CodeQL
   uses: github/codeql-action/init@v4
@@ -122,24 +143,28 @@ Code Commit → Checkout → SNYK (SCA) → CodeQL (SAST) → Build → Trivy (C
 ```
 
 **Results**:
+
 - Detects SQL injection, XSS, secrets
 - Uploads SARIF to GitHub Security tab
 - No additional setup required
 
 #### 3. Trivy - Container Vulnerability Scanning
+
 **Purpose**: Scan Docker images and filesystem for CVEs
 
 **Configuration**:
+
 ```yaml
 - name: Run Trivy vulnerability scanner
   uses: aquasecurity/trivy-action@master
   with:
-    image-ref: 'financial-advisor:${{ github.sha }}'
-    format: 'sarif'
-    severity: 'CRITICAL,HIGH,MEDIUM,LOW'
+    image-ref: "financial-advisor:${{ github.sha }}"
+    format: "sarif"
+    severity: "CRITICAL,HIGH,MEDIUM,LOW"
 ```
 
 **Results**:
+
 - Scans container image
 - Scans filesystem
 - Finds 15+ vulnerabilities in Node.js base image
@@ -167,6 +192,7 @@ CMD ["node", "dist/main.js"]
 ```
 
 **Benefits**:
+
 - Build succeeds with all tools
 - Final image is optimized
 - Security scanning works properly
@@ -177,24 +203,26 @@ CMD ["node", "dist/main.js"]
 
 ### Complete Coverage Matrix
 
-| CRA Requirement | Tool | Implementation | Evidence |
-|-----------------|------|----------------|----------|
-| **Secure Development Process** | CodeQL | SAST on every commit | Security tab alerts |
-| **Vulnerability Management** | All 3 | Automated scanning | Pipeline runs |
-| **Supply Chain Security** | SNYK + Trivy | Dependency + container scan | 119 packages scanned |
-| **SBOM Generation** | SNYK | Dependency mapping | Artifact reports |
-| **Security by Default** | Pipeline | Shift-left approach | Auto-execution |
-| **Vulnerability Disclosure** | GitHub | Security dashboard | Centralized alerts |
-| **Timely Updates** | SNYK | Continuous monitoring | New CVE detection |
+| CRA Requirement                | Tool         | Implementation              | Evidence             |
+| ------------------------------ | ------------ | --------------------------- | -------------------- |
+| **Secure Development Process** | CodeQL       | SAST on every commit        | Security tab alerts  |
+| **Vulnerability Management**   | All 3        | Automated scanning          | Pipeline runs        |
+| **Supply Chain Security**      | SNYK + Trivy | Dependency + container scan | 119 packages scanned |
+| **SBOM Generation**            | SNYK         | Dependency mapping          | Artifact reports     |
+| **Security by Default**        | Pipeline     | Shift-left approach         | Auto-execution       |
+| **Vulnerability Disclosure**   | GitHub       | Security dashboard          | Centralized alerts   |
+| **Timely Updates**             | SNYK         | Continuous monitoring       | New CVE detection    |
 
 ### Key CRA Articles Addressed
 
 **Article 10 - Secure Development**:
+
 - CodeQL performs SAST on every code change
 - Security integrated into development workflow
 - Evidence: CodeQL analysis results in Security tab
 
 **Article 13 - Vulnerability Handling**:
+
 - SNYK monitors dependencies continuously
 - Trivy scans runtime environment
 - Automated alerts for new vulnerabilities
@@ -207,18 +235,21 @@ CMD ["node", "dist/main.js"]
 ### Summary of Results
 
 **SNYK (Dependencies)**:
+
 - ✅ 119 packages scanned
 - ✅ 0 vulnerabilities found
 - ✅ Supply chain is clean
 - Note: Monitoring continues for new CVEs
 
 **CodeQL (Source Code)**:
+
 - ✅ JavaScript/TypeScript analyzed
 - ✅ Security-extended queries executed
 - ✅ Results available in Security tab
 - Categories: SQL injection, XSS, secrets
 
 **Trivy (Container)**:
+
 - ⚠️ 15+ vulnerabilities detected
 - 🔴 2 Critical/High severity
 - 🟠 4+ Medium severity
@@ -226,6 +257,7 @@ CMD ["node", "dist/main.js"]
 - Source: Node.js 18 Alpine base image
 
 ### Sample CVEs (Trivy)
+
 - CVE-2025-64756 (Critical)
 - CVE-2024-21538 (High)
 - CVE-2024-58251 (Medium)
@@ -237,6 +269,7 @@ CMD ["node", "dist/main.js"]
 ### For Exam Preparation
 
 #### 1. Collect Evidence (Required for Synopsis)
+
 ```bash
 # Take screenshots of:
 # - GitHub Actions → Latest successful run
@@ -250,9 +283,11 @@ CMD ["node", "dist/main.js"]
 ```
 
 #### 2. Create Architecture Diagram
+
 **Tools**: Draw.io, Excalidraw, or Mermaid
 
 **Include**:
+
 - Pipeline flow (commit → scan → gate → deploy)
 - Three security tools and their targets
 - Security dashboard integration
@@ -263,6 +298,7 @@ CMD ["node", "dist/main.js"]
 #### 3. Write Synopsis (Due: 5 Jan before 12:00)
 
 **Structure**:
+
 1. **Cover Page** - Title, name, date
 2. **Problem Statement** - Copy approved statement
 3. **Implementation** (2-3 pages)
@@ -275,6 +311,7 @@ CMD ["node", "dist/main.js"]
 6. **Conclusion** - Findings and recommendations
 
 **Key Points**:
+
 - Focus on actual implementation, not just theory
 - Include screenshots as evidence
 - Show real vulnerabilities found
@@ -283,6 +320,7 @@ CMD ["node", "dist/main.js"]
 #### 4. Prepare Presentation (7-8 minutes)
 
 **Slide Structure**:
+
 1. **Introduction** (30s) - Problem and approach
 2. **Theoretical Background** (1m) - CRA, DevSecOps
 3. **Pipeline Architecture** (1.5m) - Diagram and workflow
@@ -294,6 +332,7 @@ CMD ["node", "dist/main.js"]
 6. **Conclusion** (30s) - Summary and improvements
 
 **Tips**:
+
 - Have live repository ready to show
 - Practice timing
 - Prepare for questions about tool choice and CRA
@@ -301,16 +340,19 @@ CMD ["node", "dist/main.js"]
 ### Optional Improvements
 
 **Fix Container Vulnerabilities**:
+
 ```dockerfile
 # Update base image
 FROM node:18-alpine  →  FROM node:20-alpine
 ```
 
 **Enable Dependabot**:
+
 - Go to Settings → Code security → Enable Dependabot
 - Automated security updates for dependencies
 
 **Add SBOM Format**:
+
 ```bash
 snyk sbom --format=cyclonedx1.4+json
 ```
@@ -336,17 +378,20 @@ A: False positives need manual review, performance impact on CI/CD, requires sec
 ## Resources
 
 ### Live Project
+
 - **Repository**: https://github.com/feix0033/EASV-2nd-SSD-final-exam
 - **Actions**: https://github.com/feix0033/EASV-2nd-SSD-final-exam/actions
 - **Security**: https://github.com/feix0033/EASV-2nd-SSD-final-exam/security
 
 ### Tool Documentation
+
 - [SNYK Docs](https://docs.snyk.io/)
 - [CodeQL Docs](https://codeql.github.com/docs/)
 - [Trivy Docs](https://aquasecurity.github.io/trivy/)
 - [CRA Text](https://digital-strategy.ec.europa.eu/en/policies/cyber-resilience-act)
 
 ### Learning Materials
+
 - GitHub Actions workflows
 - DevSecOps best practices
 - OWASP Top 10
@@ -356,18 +401,19 @@ A: False positives need manual review, performance impact on CI/CD, requires sec
 
 ## Timeline
 
-| Date | Milestone |
-|------|-----------|
-| ✅ Jan 3 | Pipeline implemented and tested |
-| → Jan 4 | Collect screenshots and create diagrams |
-| → Jan 5 before 12:00 | **Submit synopsis on Wiseflow** |
-| → Jan 19-20 | **Oral exam (20 min)** |
+| Date                 | Milestone                               |
+| -------------------- | --------------------------------------- |
+| ✅ Jan 3             | Pipeline implemented and tested         |
+| → Jan 4              | Collect screenshots and create diagrams |
+| → Jan 5 before 12:00 | **Submit synopsis on Wiseflow**         |
+| → Jan 19-20          | **Oral exam (20 min)**                  |
 
 ---
 
 ## Success Checklist
 
 ### Implementation ✅
+
 - [x] Security pipeline created
 - [x] All three tools integrated
 - [x] Multi-stage Docker build working
@@ -376,6 +422,7 @@ A: False positives need manual review, performance impact on CI/CD, requires sec
 - [x] Security findings documented
 
 ### Evidence Collection
+
 - [ ] Screenshot: GitHub Actions successful run
 - [ ] Screenshot: Security tab with all alerts
 - [ ] Screenshot: SNYK clean dependencies
@@ -386,6 +433,7 @@ A: False positives need manual review, performance impact on CI/CD, requires sec
 - [ ] Create: CRA compliance mapping table
 
 ### Documentation
+
 - [ ] Write synopsis (2-3 pages)
 - [ ] Add cover page with name and title
 - [ ] Include all required diagrams
@@ -394,6 +442,7 @@ A: False positives need manual review, performance impact on CI/CD, requires sec
 - [ ] Submit to Wiseflow before deadline
 
 ### Presentation
+
 - [ ] Create 9 slides (7-8 minute timing)
 - [ ] Prepare live demo or screenshots
 - [ ] Practice presentation timing
