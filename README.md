@@ -1,184 +1,280 @@
-# Financial Advisor - Personal Financial Tracking Application
+# Securing CI/CD Pipeline with Automated Security Analysis
 
-A personal financial tracking application built with Nest.js (Node.js) that enables users to record, manage, and analyze their daily financial transactions.
+A comprehensive demonstration of DevSecOps practices using SNYK, CodeQL, and Trivy to secure a CI/CD pipeline in compliance with the Cyber Resilience Act (CRA).
 
 ## Overview
 
-This application serves as a comprehensive solution for tracking daily income and expenses, with a strong emphasis on software quality and testing methodologies. Users can record financial transactions, store them locally, and generate insightful financial summaries including daily totals, income breakdowns, expenses, and profit/loss calculations.
+This project demonstrates how to integrate automated security analysis tools into a CI/CD pipeline to identify vulnerabilities during the build process. Using a NestJS financial tracking application as a test case, the project implements three key security tools:
+
+- **SNYK** - Software Composition Analysis (SCA)
+- **CodeQL** - Static Application Security Testing (SAST)
+- **Trivy** - Container Vulnerability Scanning
+
+The implementation showcases how these security controls support Cyber Resilience Act requirements for secure software development and supply-chain protection.
 
 ## Problem Statement
 
-This project is a personal financial tracking application developed using Nest.js (Node.js). The application allows users to record daily financial transactions, including income and expenses, store the entries locally and calculate financial summaries such as daily totals, income, expenses and profit/loss.
+This project investigates how a CI/CD pipeline can be secured using automated analysis tools such as SNYK (Software Composition Analysis), CodeQL (Static Application Security Testing) and Trivy (Container Scanning). The goal is to identify vulnerabilities during the build process and assess how these security controls support the Cyber Resilience Act requirements for secure software development and supply-chain protection.
 
-The main focus of this project is **software quality and testing**. The application is used as a test project to demonstrate:
-
-- Unit testing
-- Data-driven unit testing
-- Use of mocking frameworks in a non-.NET environment
-- White-box testing techniques
-
-The project combines relevant theory from the course with practical implementation and testing, showing how testing techniques can be applied in a real-world application.
-
-## Features
-
-- **Transaction Management**: Record daily financial transactions (income and expenses)
-- **Local Storage**: Persistent local data storage for all financial entries
-- **Financial Summaries**: Calculate and display:
-  - Daily totals
-  - Income summaries
-  - Expense breakdowns
-  - Profit/loss analysis
-- **Quality Assurance**: Comprehensive test coverage ensuring reliability and maintainability
-
-## Technology Stack
-
-- **Framework**: [Nest.js](https://nestjs.com/) v11.0.1
-- **Runtime**: Node.js
-- **Language**: TypeScript
-- **Testing**: Jest
-- **Code Quality**: ESLint, Prettier
-- **API Documentation**: Swagger/OpenAPI
-
-## Project Setup
-
-### Prerequisites
-
-- Node.js (v16 or higher recommended)
-- npm or yarn package manager
-
-### Installation
-
-```bash
-# Navigate to the project directory
-cd financial-advisor-nest-js
-
-# Install dependencies
-npm install
-```
-
-## Running the Application
-
-```bash
-# Make sure you're in the project directory
-cd financial-advisor-nest-js
-
-# Development mode
-npm run start
-
-# Watch mode (auto-restart on changes)
-npm run start:dev
-
-# Debug mode
-npm run start:debug
-
-# Production mode
-npm run start:prod
-```
-
-## API Documentation
-
-This project includes integrated Swagger/OpenAPI documentation for all API endpoints.
-
-### Accessing Swagger UI
-
-Once the application is running, you can access the interactive API documentation at:
+## Security Pipeline Architecture
 
 ```
-http://localhost:3000/api
+Code Commit → SNYK (SCA) → CodeQL (SAST) → Build → Trivy (Container Scan) → Security Gate → Deploy
+                ↓              ↓                        ↓
+            Dependency     Code Security        Container Security
+            Vulnerabilities Vulnerabilities     Vulnerabilities
+                ↓              ↓                        ↓
+                    GitHub Security Dashboard
 ```
 
-The Swagger UI provides:
+## Security Tools
 
-- Interactive API endpoint testing
-- Request/response schemas
-- Example payloads
-- Authentication requirements
-- Comprehensive API reference
+### 1. SNYK - Software Composition Analysis (SCA)
 
-### Swagger Configuration
+**Purpose**: Identify vulnerabilities in open-source dependencies
 
-The Swagger documentation is configured in `financial-advisor-nest-js/src/main.ts` and uses decorators in controllers to generate comprehensive API documentation automatically.
+**What it scans**:
+- npm packages and their dependencies
+- Known CVEs in third-party libraries
+- License compliance issues
+- Outdated packages with security patches
 
-## Testing
+**Integration**: GitHub Actions workflow
+- Scans `package.json` and `package-lock.json`
+- Generates SBOM (Software Bill of Materials)
+- Reports vulnerabilities to GitHub Security tab
 
-This project emphasizes comprehensive testing practices:
+### 2. CodeQL - Static Application Security Testing (SAST)
 
-```bash
-# Make sure you're in the project directory
-cd financial-advisor-nest-js
+**Purpose**: Detect security vulnerabilities in source code
 
-# Run unit tests
-npm run test
+**What it scans**:
+- SQL injection vulnerabilities
+- Cross-site scripting (XSS)
+- Hardcoded secrets and credentials
+- Insecure cryptography
+- Path traversal vulnerabilities
+- Command injection risks
 
-# Run tests in watch mode
-npm run test:watch
+**Integration**: GitHub Advanced Security
+- Analyzes TypeScript/JavaScript code
+- Uses semantic code analysis
+- Creates code scanning alerts
 
-# Run end-to-end tests
-npm run test:e2e
+### 3. Trivy - Container Vulnerability Scanner
 
-# Generate test coverage report
-npm run test:cov
+**Purpose**: Scan container images for security issues
 
-# Debug tests
-npm run test:debug
-```
+**What it scans**:
+- OS package vulnerabilities
+- Application dependencies in containers
+- Misconfigurations in Dockerfiles
+- Infrastructure-as-Code security issues
 
-### Testing Approach
+**Integration**: GitHub Actions workflow
+- Scans Docker images before deployment
+- Checks base image vulnerabilities
+- Reports CRITICAL and HIGH severity issues
 
-The project demonstrates:
+## Cyber Resilience Act (CRA) Compliance
 
-- **Unit Testing**: Testing individual components and services in isolation
-- **Data-Driven Testing**: Using parameterized tests to validate multiple scenarios
-- **Mocking**: Utilizing Jest's mocking capabilities to isolate dependencies
-- **White-Box Testing**: Applying knowledge of internal code structure to ensure comprehensive coverage
-
-## Code Quality
-
-```bash
-# Make sure you're in the project directory
-cd financial-advisor-nest-js
-
-# Format code with Prettier
-npm run format
-
-# Lint and fix code issues
-npm run lint
-
-# Build the project
-npm run build
-```
+| CRA Requirement | Tool(s) | Implementation | Status |
+|-----------------|---------|----------------|--------|
+| **Secure Development Process** | CodeQL | SAST integrated in CI/CD | ✅ |
+| **Vulnerability Management** | SNYK, Trivy, CodeQL | Automated scanning on every commit | ✅ |
+| **Supply Chain Security** | SNYK | Dependency scanning and SBOM generation | ✅ |
+| **Security by Default** | All tools | Shift-left security approach | ✅ |
+| **Vulnerability Disclosure** | GitHub Security | Centralized security dashboard | ✅ |
+| **Timely Updates** | Dependabot | Automated dependency updates | ✅ |
 
 ## Project Structure
 
 ```
-financial-advisor-nest-js/
-├── src/                    # Source code
-│   ├── app.controller.ts   # Application controllers
-│   ├── app.service.ts      # Business logic services
-│   ├── app.module.ts       # Root module
-│   └── main.ts            # Application entry point
-├── test/                   # End-to-end tests
-├── coverage/              # Test coverage reports
-└── dist/                  # Compiled output
+.
+├── .github/
+│   └── workflows/
+│       └── security-pipeline.yml    # CI/CD security pipeline
+├── docs/
+│   ├── screenshots/                 # Security scan results
+│   ├── architecture/                # Pipeline diagrams
+│   ├── reports/                     # Security reports
+│   └── exam-synopsis.md            # Project synopsis
+├── financial-advisor-nest-js/       # Sample NestJS application
+│   ├── src/                        # Application source code
+│   ├── test/                       # Unit and E2E tests
+│   ├── Dockerfile                  # Container configuration
+│   └── package.json                # Dependencies
+└── README.md                        # This file
 ```
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js (v16 or higher)
+- Docker (for container scanning)
+- GitHub account (for Actions and Security features)
+- SNYK account (free tier available)
+
+### Setup
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/feix0033/EASV-2nd-SSD-final-exam.git
+   cd EASV-2nd-SSD-final-exam
+   ```
+
+2. **Install dependencies**
+   ```bash
+   cd financial-advisor-nest-js
+   npm install
+   ```
+
+3. **Configure security tools**
+   - Set up SNYK token in GitHub Secrets
+   - Enable CodeQL in repository settings
+   - Review security pipeline configuration
+
+### Running the Application
+
+```bash
+# Navigate to application directory
+cd financial-advisor-nest-js
+
+# Development mode
+npm run start:dev
+
+# Production mode
+npm run start:prod
+
+# Run tests
+npm run test
+
+# Build Docker image
+docker build -t financial-advisor .
+```
+
+## Security Pipeline Workflow
+
+The automated security pipeline runs on every push and pull request:
+
+1. **Checkout Code** - Retrieve source code
+2. **SNYK Scan** - Analyze dependencies for vulnerabilities
+3. **CodeQL Analysis** - Perform static code analysis
+4. **Build Container** - Create Docker image
+5. **Trivy Scan** - Scan container for vulnerabilities
+6. **Security Gate** - Evaluate results and block/allow deployment
+7. **Report** - Generate security reports and alerts
+
+### Viewing Security Results
+
+**GitHub Security Tab**:
+- Navigate to repository → Security → Code scanning alerts
+- View vulnerabilities detected by all three tools
+- Filter by severity (Critical, High, Medium, Low)
+- Review remediation recommendations
+
+**CI/CD Pipeline**:
+- Navigate to repository → Actions
+- Select latest workflow run
+- Review security scan outputs
+- Download security reports as artifacts
+
+## Testing the Security Pipeline
+
+The sample application intentionally includes various security issues to demonstrate tool effectiveness:
+
+### SNYK Findings
+- Vulnerable dependencies (e.g., outdated packages)
+- Dependency vulnerabilities with available patches
+- License compliance issues
+
+### CodeQL Findings
+- SQL injection vulnerabilities
+- XSS (Cross-site scripting) risks
+- Hardcoded credentials
+- Insecure data handling
+
+### Trivy Findings
+- Base image vulnerabilities (Node.js Alpine)
+- OS package vulnerabilities
+- Container misconfigurations
 
 ## Development Workflow
 
-1. Write code following NestJS conventions
-2. Create corresponding unit tests
-3. Run tests to ensure functionality
-4. Generate coverage reports to identify gaps
-5. Refactor and improve code quality
-6. Document findings and testing approaches
+1. **Write Code** - Develop features following best practices
+2. **Commit Changes** - Push to GitHub
+3. **Automated Scanning** - Security pipeline runs automatically
+4. **Review Alerts** - Check security dashboard for issues
+5. **Remediate** - Fix vulnerabilities based on recommendations
+6. **Verify** - Re-run pipeline to confirm fixes
+7. **Deploy** - Only after passing security gates
+
+## Key Security Findings
+
+### Dependency Vulnerabilities (SNYK)
+- Total dependencies scanned: [To be populated]
+- Vulnerabilities found: [To be populated]
+- Critical: [X] | High: [X] | Medium: [X] | Low: [X]
+
+### Code Security Issues (CodeQL)
+- Files analyzed: [To be populated]
+- Security issues found: [To be populated]
+- By category: SQL Injection, XSS, Secrets, etc.
+
+### Container Vulnerabilities (Trivy)
+- Base image vulnerabilities: [To be populated]
+- Application vulnerabilities: [To be populated]
+- Configuration issues: [To be populated]
+
+## Benefits of Integrated Security Pipeline
+
+✅ **Early Detection** - Find vulnerabilities during development, not production
+✅ **Automated Analysis** - No manual security reviews needed
+✅ **Comprehensive Coverage** - Dependencies, code, and runtime environment
+✅ **CRA Compliance** - Meet regulatory requirements
+✅ **Cost Effective** - Prevent expensive security incidents
+✅ **Developer Friendly** - Integrates seamlessly into existing workflow
+
+## Limitations and Future Improvements
+
+### Current Limitations
+- False positives require manual triage
+- Performance impact on CI/CD pipeline
+- Some vulnerabilities require manual verification
+- Tool configuration requires security expertise
+
+### Recommended Improvements
+- Implement Dynamic Application Security Testing (DAST)
+- Add secret scanning for credentials
+- Integrate Software Bill of Materials (SBOM) management
+- Implement security policy enforcement
+- Add runtime security monitoring
 
 ## Academic Context
 
-This project is developed as part of a Software Quality course, specifically focusing on:
+This project is developed as part of the **Software Security Development (SSD)** course at EASV, specifically focusing on:
 
-- Practical application of testing techniques
-- Implementation of quality assurance processes
-- Demonstration of white-box testing methodologies
-- Use of modern testing frameworks outside the .NET ecosystem
+- **DevSecOps Practices** - Integrating security into DevOps
+- **Automated Security Testing** - Using industry-standard tools
+- **Cyber Resilience Act** - Understanding regulatory compliance
+- **Secure SDLC** - Implementing security throughout development lifecycle
+- **Vulnerability Management** - Identifying and remediating security issues
+
+## Resources
+
+### Official Documentation
+- [SNYK Documentation](https://docs.snyk.io/)
+- [CodeQL Documentation](https://codeql.github.com/docs/)
+- [Trivy Documentation](https://aquasecurity.github.io/trivy/)
+- [Cyber Resilience Act](https://digital-strategy.ec.europa.eu/en/policies/cyber-resilience-act)
+
+### Related Topics
+- OWASP Top 10
+- DevSecOps best practices
+- Container security
+- Supply chain security
+- Software Bill of Materials (SBOM)
 
 ## License
 
@@ -186,4 +282,8 @@ UNLICENSED - Academic project for educational purposes
 
 ## Author
 
-EASV 2nd Semester - Software Quality Final Exam Project
+**EASV 2nd Semester - Software Security Development Final Exam Project**
+
+---
+
+**Note**: This project uses a financial tracking application as a sample codebase to demonstrate security pipeline implementation. The focus is on the security tooling and CI/CD integration, not the application functionality itself.
