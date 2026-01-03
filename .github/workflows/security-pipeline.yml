@@ -1,0 +1,280 @@
+name: Security CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  security-analysis:
+    name: Security Analysis and Scanning
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+      pull-requests: write
+
+    steps:
+      # ============================================
+      # Step 1: Checkout Code
+      # ============================================
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ============================================
+      # Step 2: Set up Node.js
+      # ============================================
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: financial-advisor-nest-js/package-lock.json
+
+      - name: Install dependencies
+        working-directory: financial-advisor-nest-js
+        run: npm ci
+
+      # ============================================
+      # SNYK - Software Composition Analysis (SCA)
+      # ============================================
+      - name: Run SNYK to check for vulnerabilities
+        uses: snyk/actions/node@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --all-projects --severity-threshold=low --json-file-output=snyk-report.json
+          command: test
+
+      - name: Run SNYK to generate SBOM
+        uses: snyk/actions/node@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          command: sbom
+
+      - name: Upload SNYK report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: snyk-report
+          path: snyk-report.json
+          retention-days: 30
+
+      # ============================================
+      # CodeQL - Static Application Security Testing (SAST)
+      # ============================================
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+          queries: security-extended
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:javascript-typescript"
+          output: sarif-results
+          upload: true
+
+      # ============================================
+      # Build Docker Image
+      # ============================================
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        working-directory: financial-advisor-nest-js
+        run: |
+          docker build -t financial-advisor:${{ github.sha }} .
+          docker tag financial-advisor:${{ github.sha }} financial-advisor:latest
+
+      - name: Save Docker image
+        run: |
+          docker save financial-advisor:${{ github.sha }} -o financial-advisor.tar
+
+      # ============================================
+      # Trivy - Container Vulnerability Scanning
+      # ============================================
+      - name: Run Trivy vulnerability scanner on image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'financial-advisor:${{ github.sha }}'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH,MEDIUM,LOW'
+
+      - name: Upload Trivy results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+          category: 'trivy-container-scan'
+
+      - name: Run Trivy for JSON report
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'financial-advisor:${{ github.sha }}'
+          format: 'json'
+          output: 'trivy-report.json'
+          severity: 'CRITICAL,HIGH,MEDIUM,LOW'
+
+      - name: Upload Trivy JSON report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: trivy-report
+          path: trivy-report.json
+          retention-days: 30
+
+      # ============================================
+      # Trivy - Filesystem Scanning (Additional)
+      # ============================================
+      - name: Run Trivy filesystem scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: './financial-advisor-nest-js'
+          format: 'sarif'
+          output: 'trivy-fs-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Upload Trivy filesystem results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-fs-results.sarif'
+          category: 'trivy-filesystem-scan'
+
+      # ============================================
+      # Security Gate - Evaluate Results
+      # ============================================
+      - name: Security Gate - Check Critical Issues
+        if: always()
+        run: |
+          echo "=== Security Gate Evaluation ==="
+          echo ""
+
+          # Check if critical vulnerabilities exist in Trivy report
+          if [ -f trivy-report.json ]; then
+            CRITICAL_COUNT=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="CRITICAL")] | length' trivy-report.json 2>/dev/null || echo "0")
+            HIGH_COUNT=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="HIGH")] | length' trivy-report.json 2>/dev/null || echo "0")
+
+            echo "Trivy Container Scan:"
+            echo "  - Critical vulnerabilities: $CRITICAL_COUNT"
+            echo "  - High vulnerabilities: $HIGH_COUNT"
+            echo ""
+
+            # Security gate: Fail if critical vulnerabilities found
+            if [ "$CRITICAL_COUNT" -gt "0" ]; then
+              echo "❌ SECURITY GATE FAILED: Critical vulnerabilities detected!"
+              echo "Action required: Review and remediate critical vulnerabilities before deployment"
+              # Uncomment the line below to enforce security gate
+              # exit 1
+            fi
+          fi
+
+          echo "✓ Security analysis completed"
+          echo "⚠️  Note: Security gate is in monitoring mode. Review all findings in the Security tab."
+
+      # ============================================
+      # Generate Security Summary
+      # ============================================
+      - name: Generate Security Summary
+        if: always()
+        run: |
+          echo "## 🔒 Security Pipeline Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Security Scans Completed:" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ SNYK: Software Composition Analysis" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ CodeQL: Static Application Security Testing" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Trivy: Container & Filesystem Scanning" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f trivy-report.json ]; then
+            echo "### 🐳 Container Vulnerabilities (Trivy):" >> $GITHUB_STEP_SUMMARY
+            CRITICAL=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="CRITICAL")] | length' trivy-report.json 2>/dev/null || echo "0")
+            HIGH=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="HIGH")] | length' trivy-report.json 2>/dev/null || echo "0")
+            MEDIUM=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="MEDIUM")] | length' trivy-report.json 2>/dev/null || echo "0")
+            LOW=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="LOW")] | length' trivy-report.json 2>/dev/null || echo "0")
+
+            echo "| Severity | Count |" >> $GITHUB_STEP_SUMMARY
+            echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+            echo "| 🔴 Critical | $CRITICAL |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🟠 High | $HIGH |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🟡 Medium | $MEDIUM |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🟢 Low | $LOW |" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "### 📊 View Detailed Results:" >> $GITHUB_STEP_SUMMARY
+          echo "- Navigate to the **Security** tab to view all findings" >> $GITHUB_STEP_SUMMARY
+          echo "- Download security reports from **Artifacts** section" >> $GITHUB_STEP_SUMMARY
+          echo "- Review CodeQL alerts in **Code scanning alerts**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "*Generated by Security CI/CD Pipeline - Commit: ${{ github.sha }}*" >> $GITHUB_STEP_SUMMARY
+
+      # ============================================
+      # Upload Security Reports
+      # ============================================
+      - name: Upload all security artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-reports-${{ github.sha }}
+          path: |
+            snyk-report.json
+            trivy-report.json
+            trivy-results.sarif
+            trivy-fs-results.sarif
+          retention-days: 90
+
+  # ============================================
+  # Run Application Tests
+  # ============================================
+  run-tests:
+    name: Run Application Tests
+    runs-on: ubuntu-latest
+    needs: security-analysis
+    if: always()
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: financial-advisor-nest-js/package-lock.json
+
+      - name: Install dependencies
+        working-directory: financial-advisor-nest-js
+        run: npm ci
+
+      - name: Run unit tests
+        working-directory: financial-advisor-nest-js
+        run: npm run test
+
+      - name: Run test coverage
+        working-directory: financial-advisor-nest-js
+        run: npm run test:cov
+
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: financial-advisor-nest-js/coverage
+          retention-days: 30
