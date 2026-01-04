@@ -10,6 +10,10 @@
 \usepackage[margin=2.5cm]{geometry}
 \usepackage{xcolor}
 
+\usepackage[utf8]{inputenc}
+\usepackage{array}
+\usepackage{colortbl}
+
 % Fonts and Encoding
 \usepackage{iftex}
 \ifPDFTeX
@@ -171,73 +175,150 @@
 % Content Sections
 % ============================================
 
-\section{1. Introduction / Motivation}\label{introduction-motivation}
+\section{1. Introduction}\label{introduction}
 
-% The motivation for picking this particular problem to work on should be
-% clearly communicated in the synopsis. Explain why this problem is
-% interesting for you to work and why it will be interesting for others to
-% read about. Feel free to include any background information that that is
-% required to understand the context of the problem.
+This is a company case based on the company Agramkow, who’s develop software systems for industrial companies around the world. Their PLIS platform uses containerized software components to connect different devices, such as machines, productions lines and such. 
 
-% The synopsis is a short documentation of your project work.
+This project is about the integration of automated security analyses into the CI/CD pipeline. The purpose of this being to display how implement early security checks in development in compliance with the Cyber Resilience Act (CRA), with the help of automated tools. 
+
+To demonstrate this, we use a Nest.js application to mimic the Agramkow system. The project will be kept clean and simple as to focus on the pipeline and security tools instead. 
+
+\pagebreak
 
 \section{2. Problem Statement}\label{problem-statement}
 
-This project investigates how a CI/CD pipeline can be secured using
-automated analysis tools such as SNYK (Software Composition Analysis),
-CodeQL (Static Application Security Testing) and Trivy (Container
-Scanning). The goal is to identify vulnerabilities during the build
-process and assess how these security controls support the Cyber
-Resilience Act requirements for secure software development and
-supply-chain protection.
+This project investigates how a CI/CD pipeline can be secured using automated analysis tools such as SNYK (Software Composition Analysis), CodeQL (Static Application Security Testing) and Trivy (Container Scanning).  
+
+The goal is to identify vulnerabilities during the build process and assess how this security controls support the Cyber Resilience Act requirements for secure software development and supply-chain protection. 
+
+\pagebreak
 
 \section{3. Implementation}\label{inplementation}
 
 \subsection{3.1 Pipeline architecture}\label{pipeline-architecture}
 
-\subsection{3.2 Tool integration details}\label{tool-integration-details}
+This projects CI/CD pipeline follows the shift-left security approach, this for the reason being that it runs security checks as early as possible. The automatic trigger for the pipeline is set to be when a developer push or pull requests. 
+
+The structure of the flow is as follows: 
+
+\begin{quote}
+\textbf{Commit → SNYK (SCA) → CodeQL (SAST) → Build → Trivy (Container Scan) → Security Gate → Deploy}
+\end{quote}
+
+\textbf{Elaboration of the flow:}
+
+\begin{enumerate}
+    \item Developer commits.
+    \item SNYK scans the dependencies (package.json) and compares them to lists of known vulnerabilities (CVEs) and then passes if none are found.
+    \item CodeQL performs a static analysis of the code (TypeScript), detecting any insecure coding patterns.
+    \item Application builds as a docker image.
+    \item Trivy scans the produced docker image for vulnerabilities in the packages and system.
+    \item Successfully deploys the request, if all steps are successful.
+\end{enumerate}
+
+%% Todo: Insert picture here
+
+\pagebreak
+
+\subsection{3.2 Tool integration}\label{tool-integration}
+
+All tools used are integrated through the GitHub Actions, which is a realistic environment for the development team. Similar to Bitbucket Pipeline, which has the same functionality. 
+
+The NestJS application is structured to follow a layered architecture as follows: 
+
+\begin{enumerate}
+    \item \textbf{Core} – Domain Models and Interfaces. 
+    \item \textbf{Infrastructure} – Repository implementation, in this case in-memory. 
+    \item \textbf{Application} – Controllers and Services. 
+\end{enumerate}
+
+REST endpoints are being exposed that are documented with Swagger, which is similar to the Agramkow structure for the PLIS platform, that exposes APIs. 
+
+With each security tool running automatically, via GitHub Actions the developers can then analyse each tool, see its output and this way retrieve feedback without having to use any tool manually. 
 
 \subsection{3.3 Security findings}\label{security-findings}
 
+The repository uses a dependency set and container base image to showcase the tooling output, the most common being as follows: 
+
+\begin{enumerate}
+    \item \textbf{SNYK} – Vulnerable or outdated packages with CVEs, and suggestions for upgrades. 
+    \item \textbf{CodeQL} – Analysis alerts about questionable patterns, potential injections points to expose. 
+    \item \textbf{Trivy} – Vulnerabilities in the docker image and misconfigurations therein. 
+\end{enumerate}
+
+When each step has been completed, the CI workflow then collect its results and displays it. Showing how potential vulnerabilities and can be triaged and tracked. 
+
+\pagebreak
+
 \subsection{3.4 CRA compliance mapping}\label{cra-compliance-mapping}
 
-% In this section you should describe how you intend to analyze and solve
-% the problem. Refer to relevant litterature or videos that contains
-% information that will help you solve the problem.
+Several key principles of the Cyber Resilience Act are being supported by our CI/CD implementation. 
 
-% Describe in more detail how you will solve the problem: what will you
-% implement? What will you measure? How will you evaluate your
-% measurements?
+The 3 key articles being as follows: 
 
-% And finally: What will confirm or reject your hypothesis?
+\begin{enumerate}
+    \item \textbf{Article 10 – Secure Development Process} \par \textbf{CodeQL} – Static analysis that ensures secure coding practices are enforced by default. 
+    \item \textbf{Article 13 – Vulnerability Handling } \par \textbf{SNYK/Trivy:} –  Automated scanning that detects vulnerabilities continuously and enabling early remediation.
+    \item \textbf{Article 14 – Supply Chain Security } \par \textbf{SNYK} – Dependency analysis and generation of SBOM, with improved traceability and transparency. 
+\end{enumerate}
 
-\section{4. Analysis \& Results}\label{analysis-results}
+\begin{table}[h]
+\centering
+\begin{tabular}{|>{\centering\arraybackslash}p{3.5cm}|>{\centering\arraybackslash}p{3cm}|>{\centering\arraybackslash}p{4.5cm}|>{\centering\arraybackslash}p{2.5cm}|}
+\hline
+\rowcolor{blue!70!black}
+\textcolor{white}{\textbf{CRA Requirement}} & \textcolor{white}{\textbf{Tools}} & \textcolor{white}{\textbf{Implementation}} & \textcolor{white}{\textbf{Status}} \\
+\hline
+\rowcolor{blue!20}
+\textbf{Secure Development Process} & CodeQL & SAST integrated into CI/CD pipeline for secure coding practices. & Implemented \\
+\hline
+\rowcolor{blue!20}
+\textbf{Vulnerability Management} & SNYK, Trivy \& CodeQL & Automated scanning on every commit for early detection. & Implemented \\
+\hline
+\rowcolor{blue!20}
+\textbf{Supply Chain Security} & SNYK & Dependency scanning and automated SBOM generation. & Implemented \\
+\hline
+\rowcolor{blue!20}
+\textbf{Security by Default} & All Tools & Shift-left security integrated into workflow. & Implemented \\
+\hline
+\rowcolor{blue!20}
+\textbf{Vulnerability Disclosure} & GitHub Security & Security reporting and alerting centralized. & Implemented \\
+\hline
+\rowcolor{blue!20}
+\textbf{Timely Updates} & Dependabot & Automated security patching and dependency updating. & Implemented \\
+\hline
+\end{tabular}
+\caption{CRA Requirements Implementation Overview}
+\label{tab:cra-requirements}
+\end{table}
 
-% This is the meat of your synopsis.
+\pagebreak
 
-% You have to outline what you have done in this section. Document the
-% effort you've put into analyzing the problem and also the work you've
-% done building and implementing a solution.
+\section{4. Analysis and Results}\label{analysis-results}
 
-% This isn't your GitHub repository. You should not include all the code
-% you've written. Instead, you should include the most important parts of
-% your work.
+The result of this project is a fully functional CI/CD pipeline that shows integration of automated security analysis into a workflow which is built to be similar to that of Agramkow. The primary focus of the analysis is how the security tools we have chosen works and supports the Cyber Resilience Act requirements. 
 
-% What is important? Parts of the code that are a result of your analysis
-% and the choices you've made. Connect theory and analysis to how the code
-% is written.
+The pipeline runs all the security checks as intended automatically on push and pulls. This displays a great example of how security can be integrated into CI/CD without the developer actually having those manual steps, that would otherwise be required. Each of the tools used contributes to the security as a whole, differently. 
 
-% Demonstrate that you understand the theory and that you can apply it to
-% solve a problem. Don't expect and plan for creating a ``product''. Write
-% only enough code, outside your main objective and focus on your problem.
+SNYK is identifying vulnerabilities which is very important in an environment like Agramkow in our case, where their different services rely on shared libraries. CodeQL checks and detects any insecure coding patterns through its static analysis, preventing flaws from entering production. Trivy then scans the built docker image and reports back with the vulnerabilities in the base image and packages, even with the code within the application being secure. 
+
+The analysis also presents that the automated tools we use have limitations. That meaning that a developer still needs to manually review the results and its aspects, that includes out of scope incident handling and runtime security. 
+
+In conclusion, the results retrieved from this project confirms that automated CI/CD security tools can be an effective for secure software development. This reflects the very realistic scenario where tools support the developer but does NOT replace secure development practices. 
+
+\pagebreak
 
 \section{5. Conclusion}\label{conclusion}
 
-% Summarize.
+The project demonstrates how to secure the CI/CD Pipeline using the chosen automated tools. By integrating Trivy, CodeQL and SNYK we can display any vulnerabilities that can be found, fast and consistently throughout development. 
 
-% This is your chance to briefly summarize what you've done throughout the
-% project. Focus on the most important parts and takeways from your work.
-% And finally, what did you find out? Did you confirm or reject your
-% hypothesis?
+Without focusing on the application itself, the design of the pipeline is relevant for systems such as, and in this case Agramkow’s platform. The pipeline shows how the vulnerabilities in code, container images, dependencies, and alike can be automatically detected and caught before reaching deployment, this in turn highlights the term Secure by Design from the Cyber Resilience Act. 
+
+\section{5. Conclusion}\label{conclusion}
+
+The project demonstrates how to secure the CI/CD Pipeline using the chosen automated tools. By integrating Trivy, CodeQL and SNYK we can display any vulnerabilities that can be found, fast and consistently throughout development. 
+
+Without focusing on the application itself, the design of the pipeline is relevant for systems such as, and in this case Agramkow’s platform. The pipeline shows how the vulnerabilities in code, container images, dependencies, and alike can be automatically detected and caught before reaching deployment, this in turn highlights the term Secure by Design from the Cyber Resilience Act. 
+
 
 \end{document}
