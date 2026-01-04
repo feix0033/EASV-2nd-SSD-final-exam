@@ -201,9 +201,12 @@ This projects CI/CD pipeline follows the shift-left security approach, this for 
 
 The structure of the flow is as follows: 
 
-\begin{quote}
-\textbf{Commit → SNYK (SCA) → CodeQL (SAST) → Build → Trivy (Container Scan) → Security Gate → Deploy}
-\end{quote}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\textwidth]{diagrams/pipeline-workflow.png}
+    \caption{Security CI/CD Pipeline Workflow}
+    \label{fig:pipeline-workflow}
+\end{figure}
 
 \textbf{Elaboration of the flow:}
 
@@ -215,8 +218,6 @@ The structure of the flow is as follows:
     \item Trivy scans the produced docker image for vulnerabilities in the packages and system.
     \item Successfully deploys the request, if all steps are successful.
 \end{enumerate}
-
-%% Todo: Insert picture here
 
 \pagebreak
 
@@ -296,7 +297,15 @@ The 3 key articles being as follows:
 
 \section{4. Analysis and Results}\label{analysis-results}
 
-The result of this project is a fully functional CI/CD pipeline that shows integration of automated security analysis into a workflow which is built to be similar to that of Agramkow. The primary focus of the analysis is how the security tools we have chosen works and supports the Cyber Resilience Act requirements. 
+The result of this project is a fully functional CI/CD pipeline that shows integration of automated security analysis 
+into a workflow which is built to be similar to that of Agramkow. The primary focus of the analysis is how the security 
+tools we have chosen works and supports the Cyber Resilience Act requirements. 
+
+\includegraphics[width=0.8\textwidth]{screenshots/success.png}
+
+This is the summery of the Security Pipeline Results
+
+\includegraphics[width=0.8\textwidth]{screenshots/summery.png}
 
 The pipeline runs all the security checks as intended automatically on push and pulls. This displays a great example of how security can be integrated into CI/CD without the developer actually having those manual steps, that would otherwise be required. Each of the tools used contributes to the security as a whole, differently. 
 

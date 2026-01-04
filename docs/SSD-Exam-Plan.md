@@ -423,14 +423,14 @@ A: False positives need manual review, performance impact on CI/CD, requires sec
 
 ### Evidence Collection
 
-- [ ] Screenshot: GitHub Actions successful run
-- [ ] Screenshot: Security tab with all alerts
-- [ ] Screenshot: SNYK clean dependencies
-- [ ] Screenshot: Trivy container vulnerabilities
-- [ ] Screenshot: CodeQL code analysis
-- [ ] Download: All security report artifacts
-- [ ] Create: Pipeline architecture diagram
-- [ ] Create: CRA compliance mapping table
+- [x] Screenshot: GitHub Actions successful run
+- [x] Screenshot: Security tab with all alerts
+- [x] Screenshot: SNYK clean dependencies
+- [x] Screenshot: Trivy container vulnerabilities
+- [x] Screenshot: CodeQL code analysis
+- [x] Download: All security report artifacts
+- [x] Create: Pipeline architecture diagram
+- [x] Create: CRA compliance mapping table
 
 ### Documentation
 
