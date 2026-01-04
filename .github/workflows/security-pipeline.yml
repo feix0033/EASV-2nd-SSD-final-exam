@@ -195,13 +195,13 @@ jobs:
           echo "## 🔒 Security Pipeline Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Security Scans Completed:" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ SNYK: Software Composition Analysis" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ CodeQL: Static Application Security Testing" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Trivy: Container & Filesystem Scanning" >> $GITHUB_STEP_SUMMARY
+          echo "- SNYK: Software Composition Analysis" >> $GITHUB_STEP_SUMMARY
+          echo "- CodeQL: Static Application Security Testing" >> $GITHUB_STEP_SUMMARY
+          echo "- Trivy: Container & Filesystem Scanning" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
           if [ -f trivy-report.json ]; then
-            echo "### 🐳 Container Vulnerabilities (Trivy):" >> $GITHUB_STEP_SUMMARY
+            echo "### Container Vulnerabilities (Trivy):" >> $GITHUB_STEP_SUMMARY
             CRITICAL=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="CRITICAL")] | length' trivy-report.json 2>/dev/null || echo "0")
             HIGH=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="HIGH")] | length' trivy-report.json 2>/dev/null || echo "0")
             MEDIUM=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="MEDIUM")] | length' trivy-report.json 2>/dev/null || echo "0")
@@ -209,14 +209,14 @@ jobs:
 
             echo "| Severity | Count |" >> $GITHUB_STEP_SUMMARY
             echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
-            echo "| 🔴 Critical | $CRITICAL |" >> $GITHUB_STEP_SUMMARY
-            echo "| 🟠 High | $HIGH |" >> $GITHUB_STEP_SUMMARY
-            echo "| 🟡 Medium | $MEDIUM |" >> $GITHUB_STEP_SUMMARY
-            echo "| 🟢 Low | $LOW |" >> $GITHUB_STEP_SUMMARY
+            echo "| Critical | $CRITICAL |" >> $GITHUB_STEP_SUMMARY
+            echo "| High | $HIGH |" >> $GITHUB_STEP_SUMMARY
+            echo "| Medium | $MEDIUM |" >> $GITHUB_STEP_SUMMARY
+            echo "| Low | $LOW |" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
           fi
 
-          echo "### 📊 View Detailed Results:" >> $GITHUB_STEP_SUMMARY
+          echo "### View Detailed Results:" >> $GITHUB_STEP_SUMMARY
           echo "- Navigate to the **Security** tab to view all findings" >> $GITHUB_STEP_SUMMARY
           echo "- Download security reports from **Artifacts** section" >> $GITHUB_STEP_SUMMARY
           echo "- Review CodeQL alerts in **Code scanning alerts**" >> $GITHUB_STEP_SUMMARY
