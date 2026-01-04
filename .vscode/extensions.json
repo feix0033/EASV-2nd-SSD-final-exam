@@ -1,0 +1,23 @@
+{
+  "recommendations": [
+    // LaTeX
+    "james-yu.latex-workshop",
+
+    // TypeScript & JavaScript
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+
+    // NestJS
+    "ashinzekene.nestjs",
+
+    // Testing
+    "orta.vscode-jest",
+
+    // Markdown
+    "yzhang.markdown-all-in-one",
+
+    // General
+    "editorconfig.editorconfig",
+    "streetsidesoftware.code-spell-checker"
+  ]
+}
