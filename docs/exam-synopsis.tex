@@ -1,0 +1,517 @@
+% ============================================
+% Document Class and Basic Setup
+% ============================================
+\documentclass[11pt]{article}
+
+% ============================================
+% Package Imports
+% ============================================
+% Geometry and Layout
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{xcolor}
+
+\usepackage[utf8]{inputenc}
+\usepackage{array}
+\usepackage{colortbl}
+
+% Fonts and Encoding
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp}
+\else
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+
+% Typography
+\IfFileExists{microtype.sty}{%
+  \usepackage{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath}
+}{}
+
+% Paragraph Formatting
+\makeatletter
+\@ifundefined{KOMAClassName}{%
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{%
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}
+  }
+}{%
+  \KOMAoptions{parskip=half}
+}
+\makeatother
+
+% Math
+\usepackage{amsmath,amssymb}
+
+% Utilities
+\setlength{\emergencystretch}{3em}
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen}
+% Headers and Footers
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+
+% Graphics
+\usepackage{graphicx}
+\usepackage{float}
+
+% TOC Management
+\usepackage{etoolbox}
+
+% ============================================
+% Custom Title Page
+% ============================================
+\makeatletter
+\renewcommand{\maketitle}{%
+  \begin{titlepage}
+    \thispagestyle{empty}
+    \begin{center}
+      \vspace*{3cm}
+
+      % Title
+      {\Huge\bfseries\@title\par}
+      \vspace{2cm}
+
+      % Subtitle and Course
+      {\Large PB Software Development\par}
+      \vspace{0.5cm}
+      {\large Secure Software Development\par}
+      \vspace{0.5cm}
+      {\large Rasmus Guldborg\par}
+      \vspace{3cm}
+
+      % Date
+      {\large\textit{Fall 2025}\par}
+      \vfill
+
+      % Logo (uncomment to use)
+      \includegraphics[width=0.3\textwidth]{logo.png}
+
+      % Author
+      {\large\textit{Synopsis by Marco Gabel \& Fei Gu}\par}
+      \vspace{1cm}
+    \end{center}
+  \end{titlepage}
+  \clearpage
+}
+\makeatother
+
+% ============================================
+% Headers and Footers Configuration
+% ============================================
+% Content pages style
+\pagestyle{fancy}
+\fancyhead[L]{\small\textit{Marco Gabel \& Fei Gu}}
+\fancyhead[C]{\small\textit{EASV SSD}}
+\fancyhead[R]{\small\textit{Exam Synopsis 2026}}
+\fancyfoot[C]{\small\thepage\ af \pageref{LastPage}}
+\fancyfoot[L]{}
+\fancyfoot[R]{}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+% Plain style (for title and TOC pages)
+\fancypagestyle{plain}{%
+  \fancyhf{}
+  \fancyfoot[C]{\small\thepage\ af \pageref{LastPage}}
+  \renewcommand{\headrulewidth}{0pt}
+}
+
+% ============================================
+% Table of Contents Configuration
+% ============================================
+\AtEndDocument{%
+  \addtocontents{toc}{\protect\clearpage}
+}
+% ============================================
+% Hyperlinks and PDF Metadata
+% ============================================
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{}
+\urlstyle{same}
+\hypersetup{
+  pdftitle={Exam Synopsis -- Securing CI/CD Pipeline with SNYK, CodeQL, and Trivy},
+  pdfauthor={Marco Gabel \& Fei Gu},
+  pdfkeywords={SNYK, CodeQL, Trivy, DevSecOps, CI/CD Security, CRA},
+  colorlinks=true,
+  linkcolor=blue,
+  filecolor=Maroon,
+  citecolor=Blue,
+  urlcolor=blue,
+  pdfcreator={LaTeX via pandoc}
+}
+
+% ============================================
+% Document Metadata
+% ============================================
+\title{Exam Synopsis -- Securing CI/CD Pipeline with SNYK, CodeQL, and Trivy}
+\author{Marco Gabel \& Fei Gu}
+\date{Fall 2025}
+
+% ============================================
+% Document Body
+% ============================================
+\begin{document}
+
+% Generate title page
+\maketitle
+
+% Generate table of contents
+\renewcommand*\contentsname{Table of Contents}
+{
+  \hypersetup{linkcolor=black}
+  \setcounter{tocdepth}{3}
+  \tableofcontents
+}
+
+% ============================================
+% Content Sections
+% ============================================
+
+\section{1. Introduction}\label{introduction}
+
+This is a company case based on the company Agramkow, who's develop software
+systems for industrial companies around the world. Their PLIS platform uses
+containerized software components to connect different devices, such as
+machines, productions lines and such.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.9\textwidth]{reports/Agramkow-Archetecture.png}
+    \caption{Agramkow PLIS Platform Architecture}
+    \label{fig:agramkow-architecture}
+\end{figure}
+
+This project is about the integration of automated security analyses into the
+CI/CD pipeline. The purpose of this being to display how implement early
+security checks in development in compliance with the Cyber Resilience Act
+(CRA), with the help of automated tools.
+
+To demonstrate this, we use a Nest.js application to mimic the Agramkow system.
+The project will be kept clean and simple as to focus on the pipeline and
+security tools instead. 
+
+The NestJS application is structured to follow a layered architecture as
+follows:
+
+\begin{enumerate}
+    \item \textbf{Core} – Domain Models and Interfaces.
+    \item \textbf{Infrastructure} – Repository implementation, in this case
+          in-memory.
+    \item \textbf{Application} – Controllers and Services.
+\end{enumerate}
+
+REST endpoints are being exposed that are documented with Swagger, which is
+similar to the Agramkow structure for the PLIS platform, that exposes APIs.
+
+
+\pagebreak
+
+\section{2. Problem Statement}\label{problem-statement}
+
+This project investigates how a CI/CD pipeline can be secured using automated
+analysis tools such as SNYK (Software Composition Analysis), CodeQL (Static
+Application Security Testing) and Trivy (Container Scanning).
+
+The goal is to identify vulnerabilities during the build process and assess how
+this security controls support the Cyber Resilience Act requirements for secure
+software development and supply-chain protection. 
+
+\pagebreak
+
+\section{3. Implementation}\label{inplementation}
+
+\subsection{3.1 Pipeline architecture}\label{pipeline-architecture}
+
+This projects CI/CD pipeline follows the shift-left security approach, this for
+the reason being that it runs security checks as early as possible. The
+automatic trigger for the pipeline is set to be when a developer push or pull
+requests. 
+
+The structure of the flow is as follows: 
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\textwidth]{diagrams/pipeline-workflow.png}
+    \caption{Security CI/CD Pipeline Workflow}
+    \label{fig:pipeline-workflow}
+\end{figure}
+
+\textbf{Elaboration on the flow:}
+
+\begin{enumerate}
+    \item Developer commits.
+    \item SNYK scans the dependencies (package.json) and compares them to lists
+          of known vulnerabilities (CVEs) and then passes if none are found.
+    \item CodeQL performs a static analysis of the code (TypeScript), detecting
+          any insecure coding patterns.
+    \item Application builds as a docker image.
+    \item Trivy scans the produced docker image for vulnerabilities in the
+          packages and system.
+    \item When reaching the security gate, it will evaluate results, and
+          remediate if it fails.
+    \item If it passes, run the unit test and export the coverage report.
+    \item After that, deploys the request, if all steps are successful.
+\end{enumerate}
+
+\pagebreak
+
+\subsection{3.2 Tool integration}\label{tool-integration}
+
+All tools used are integrated through the GitHub Actions, which is a realistic
+environment for the development team. Similar to Bitbucket Pipeline, which has
+the same functionality and the rich plugin to implement the DevSecOps.
+
+With each security tool running automatically, via GitHub Actions the developers
+can then analyse each tool, see its output and this way retrieve feedback
+without having to use any tool manually. 
+We integrated those three tools by adding the GitHub Actions Plugins in three steps 
+to running the security check. 
+
+\subsubsection{SNYK integration}
+Integrated into the CI pipeline using shell script that install the npm package which is called 'snyk' globally. 
+After install, the SNYK will authorise the API key that registed from the SNYK server.
+Then scans all project dependencies, reports vulnerabilities in the GitHub interface.
+
+\subsubsection{CodeQL integration}
+Configured via a GitHub Actions \texttt{github/codeql-action} plugin \texttt{'init@v4'}, \texttt{'autobuild@v4'}, and \texttt{'analyze@v4'}.
+to run static code analysis on every push and pull request. The workflow includes steps 
+to initialize the CodeQL database, run the analysis, and upload results directly to GitHub’s security tab.
+
+\subsubsection{Trivy integration}
+Integrated as a build step within the CI workflow to scan Docker images. 
+The workflow pulls the built image, runs Trivy scans for known vulnerabilities and misconfigurations, 
+and outputs the results in a GitHub Actions summary for developer review.
+
+\pagebreak
+
+\subsection{3.3 Security findings}\label{security-findings}
+
+The repository uses a dependency set and container base image to showcase the
+tooling output, the most common being as follows: 
+
+\begin{enumerate}
+    \item \textbf{SNYK} – Vulnerable or outdated packages with CVEs, and
+          suggestions for upgrades.
+    \item \textbf{CodeQL} – Analysis alerts about questionable patterns,
+          potential injections points to expose.
+    \item \textbf{Trivy} – Vulnerabilities in the docker image and
+          misconfigurations therein. 
+\end{enumerate}
+
+When each step has been completed, the CI workflow then collect its results and
+displays it. Showing how potential vulnerabilities and can be triaged and
+tracked. 
+
+\pagebreak
+
+\subsection{3.4 CRA compliance mapping}\label{cra-compliance-mapping}
+
+Several key principles of the Cyber Resilience Act are being supported by our
+CI/CD implementation. 
+
+The 3 key articles being as follows: 
+
+\begin{enumerate}
+    \item \textbf{Article 10 – Secure Development Process} \par
+          \textbf{CodeQL} – Static analysis that ensures secure coding practices
+          are enforced by default.
+    \item \textbf{Article 13 – Vulnerability Handling} \par
+          \textbf{SNYK/Trivy:} – Automated scanning that detects vulnerabilities
+          continuously and enabling early remediation.
+    \item \textbf{Article 14 – Supply Chain Security} \par
+          \textbf{SNYK} – Dependency analysis and generation of SBOM, with
+          improved traceability and transparency. 
+\end{enumerate}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|>{\centering\arraybackslash}p{3.5cm}|>{\centering\arraybackslash}p{3cm}|>{\centering\arraybackslash}p{4.5cm}|>{\centering\arraybackslash}p{2.5cm}|}
+\hline
+\rowcolor{blue!35}
+\textbf{CRA Requirement} & \textbf{Tools} & \textbf{Implementation} & \textbf{Status} \\
+\hline
+\rowcolor{blue!8}
+\textbf{Secure Development Process} & CodeQL & SAST integrated into CI/CD pipeline for secure coding practices. & Implemented \\
+\hline
+\rowcolor{blue!8}
+\textbf{Vulnerability Management} & SNYK, Trivy \& CodeQL & Automated scanning on every commit for early detection. & Implemented \\
+\hline
+\rowcolor{blue!8}
+\textbf{Supply Chain Security} & SNYK & Dependency scanning and automated SBOM generation. & Implemented \\
+\hline
+\rowcolor{blue!8}
+\textbf{Security by Default} & All Tools & Shift-left security integrated into workflow. & Implemented \\
+\hline
+\rowcolor{blue!8}
+\textbf{Vulnerability Disclosure} & GitHub Security & Security reporting and alerting centralized. & Implemented \\
+\hline
+\rowcolor{blue!8}
+\textbf{Timely Updates} & Dependabot & Automated security patching and dependency updating. & Implemented \\
+\hline
+\end{tabular}
+\caption{CRA Requirements Implementation Overview}
+\label{tab:cra-requirements}
+\end{table}
+
+\pagebreak
+
+\section{4. Analysis and Results}\label{analysis-results}
+
+The result of this project is a fully functional CI/CD pipeline that shows integration of automated security analysis 
+into a workflow which is built to be similar to that of Agramkow. The primary focus of the analysis is how the security 
+tools we have chosen works and supports the Cyber Resilience Act requirements. 
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\textwidth]{screenshots/success.png}
+    \caption{CI/CD Pipeline Successfully Triggered and Passed}
+    \label{fig:pipeline-success}
+\end{figure}
+
+The above figure shows the pipeline be triggered automatically and successfully pass.
+
+The pipeline runs all the security checks as intended automatically on push and
+pulls. This displays a great example of how security can be integrated into
+CI/CD without the developer actually having those manual steps, that would
+otherwise be required. Each of the tools used contributes to the security as a
+whole, differently.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\textwidth]{screenshots/summery.png}
+    \caption{Security Pipeline Results Summary}
+    \label{fig:pipeline-summary}
+\end{figure}
+
+After the pipeline runs, the result shows in the GitHub Actions Interface.
+As we saw here, the Trivy scans the built docker image and 
+reports back with the vulnerabilities in the base image
+and packages, demonstrate that code base has 2 high vulnerabiliities
+that needs to be fixed immediately before deploy, 7 medium, 6 low more needs to be checked.
+
+Based on the scan results, the overall risk level is classified as 
+\textbf{HIGH} due to the presence of 2 High-severity vulnerabilities. 
+Because of that, the security gate should block 
+deployment until these vulnerabilities are remediated.
+
+And then look at the CVSS: 
+
+\begin{itemize}
+    \item \textbf{Low}: 0.1 - 3.9
+    \item \textbf{Medium}: 4.0 - 6.9
+    \item \textbf{High}: 7.0 - 8.9
+    \item \textbf{Critical}: 9.0 - 10.0
+\end{itemize}
+
+Then calculate and look at the risk score
+
+\begin{equation}
+\text{Risk Score} = (2 \times 7) + (7 \times 4) + (6 \times 1) = 48
+\end{equation}
+
+This score of 48 places the build in the HIGH RISK category, 
+requiring immediate action from this point of view.
+
+At the very beginning in the pipeline, SNYK is identifying vulnerabilities at first
+which is very important in an environment like Agramkow in our case, 
+where their different services rely on shared libraries. 
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{screenshots/snyk-alert.png}
+    \caption{SNYK Dependency Analysis Results}
+    \label{fig:snyk-alert}
+\end{figure}
+
+Based on the figure that presents the SNYK analysis process. In this project,
+it analyses 119 packages and does not find any vulnerabilities. The reason being,
+it is using NestJS with a simple implementation, 
+that does not consist of complex features or modules.
+In the Agramkow project, that maybe will shows some of 
+dependencies has vulnerabiliities.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.9\textwidth]{screenshots/CodeQL-Trivy-Alert.png}
+    \caption{CodeQL Security Alerts}
+    \label{fig:codeql-trivy-alert}
+\end{figure}
+
+Before the Trivy alert, CodeQL checks and detects any insecure coding patterns through its
+static analysis, preventing flaws from entering production. 
+
+\pagebreak
+
+\section{5. Conclusion}\label{conclusion}
+
+In conclusion, the results retrieved from this project confirms that automated
+CI/CD security tools can be an effective for secure software development. This
+reflects the very realistic scenario where tools support the developer but does
+NOT replace secure development practices. 
+
+The project demonstrates how to secure the CI/CD Pipeline using the chosen
+automated tools. By integrating Trivy, CodeQL and SNYK we can display any
+known vulnerabilities that can be found, fast and consistently throughout development.
+
+The analysis also presents that the automated tools we use have limitations.
+That meaning that a developer still needs to manually review the results and its
+aspects, that includes out of scope incident handling and runtime security.
+
+Without focusing on the application itself, the design of the pipeline is
+relevant for systems such as, and in this case Agramkow's platform. The pipeline
+shows how the vulnerabilities in code, container images, dependencies, and alike
+can be automatically detected and caught before reaching deployment, this in
+turn highlights the term Secure by Design from the Cyber Resilience Act. 
+
+\pagebreak
+
+\section{Sources}\label{source}
+
+Cyber Resilience Act. 
+
+https://digital-strategy.ec.europa.eu/en/policies/cyber-resilience-act 
+
+OWASP Software Supply Chain Security Top 10. 
+
+https://owasp.org/www-project-software-supply-chain-top-10/ 
+
+SNYK Documentation. 
+
+https://docs.snyk.io 
+
+Claude AI (Anthropic). 
+
+CodeQL Documentation. 
+
+https://docs.github.com/en/code-security/code-scanning 
+
+Trivy Documentation. 
+
+https://aquasecurity.github.io/trivy/ 
+
+Docker Documentation – Image Security and Best Practices. 
+
+https://docs.docker.com/develop/security-best-practices/ 
+
+GitHub Actions Documentation. 
+
+https://docs.github.com/en/actions 
+
+Agramkow 
+
+Agramkow system architecture diagram (provided as part of the company case). 
+
+GitHub Repository.
+
+https://github.com/feix0033/EASV-2nd-SSD-final-exam
+
+\end{document}
