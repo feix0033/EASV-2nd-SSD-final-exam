@@ -182,6 +182,13 @@ systems for industrial companies around the world. Their PLIS platform uses
 containerized software components to connect different devices, such as
 machines, productions lines and such.
 
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.9\textwidth]{reports/Agramkow-Archetecture.png}
+    \caption{Agramkow PLIS Platform Architecture}
+    \label{fig:agramkow-architecture}
+\end{figure}
+
 This project is about the integration of automated security analyses into the
 CI/CD pipeline. The purpose of this being to display how implement early
 security checks in development in compliance with the Cyber Resilience Act
@@ -362,7 +369,12 @@ The result of this project is a fully functional CI/CD pipeline that shows integ
 into a workflow which is built to be similar to that of Agramkow. The primary focus of the analysis is how the security 
 tools we have chosen works and supports the Cyber Resilience Act requirements. 
 
-\includegraphics[width=0.7\textwidth]{screenshots/success.png}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\textwidth]{screenshots/success.png}
+    \caption{CI/CD Pipeline Successfully Triggered and Passed}
+    \label{fig:pipeline-success}
+\end{figure}
 
 The above figure shows the pipeline be triggered automatically and successfully pass.
 
@@ -372,7 +384,12 @@ CI/CD without the developer actually having those manual steps, that would
 otherwise be required. Each of the tools used contributes to the security as a
 whole, differently.
 
-\includegraphics[width=0.7\textwidth]{screenshots/summery.png}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\textwidth]{screenshots/summery.png}
+    \caption{Security Pipeline Results Summary}
+    \label{fig:pipeline-summary}
+\end{figure}
 
 After the pipeline runs, the result shows in the GitHub Actions Interface.
 As we saw here, the Trivy scans the built docker image and 
@@ -403,35 +420,50 @@ Then calculate and look at the risk score
 This score of 48 places the build in the HIGH RISK category, 
 also requiring immediate action from this point of view.
 
-Before the Trivy alert, in the pipeline, SNYK is identifying vulnerabilities at first
+At the very beginning in the pipeline, in the pipeline, SNYK is identifying vulnerabilities at first
 which is very important in an environment like Agramkow in our case, 
 where their different services rely on shared libraries. 
 
-\includegraphics[width=0.9\textwidth]{screenshots/snyk-alert.png}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.9\textwidth]{screenshots/snyk-alert.png}
+    \caption{SNYK Dependency Analysis Results}
+    \label{fig:snyk-alert}
+\end{figure}
 
+Based on the figure that presents the SNYK analysis process. In this project,
+it analyses 119 packages and does not find any vulnerabilities. The reason being,
+it is using NestJS with a simple implementation, 
+that does not consist of complex features or modules.
+In the Agramkow project, that maybe will shows some of 
+dependencies has vulnerabiliities.
 
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.9\textwidth]{screenshots/CodeQL-Trivy-Alert.png}
+    \caption{CodeQL Security Alerts}
+    \label{fig:codeql-trivy-alert}
+\end{figure}
 
-
-CodeQL checks and detects any insecure coding patterns through its
+Before the Trivy alert, CodeQL checks and detects any insecure coding patterns through its
 static analysis, preventing flaws from entering production. 
 
+\pagebreak
 
-The analysis also presents that the automated tools we use have limitations.
-That meaning that a developer still needs to manually review the results and its
-aspects, that includes out of scope incident handling and runtime security.
+\section{5. Conclusion}\label{conclusion}
 
 In conclusion, the results retrieved from this project confirms that automated
 CI/CD security tools can be an effective for secure software development. This
 reflects the very realistic scenario where tools support the developer but does
 NOT replace secure development practices. 
 
-\pagebreak
-
-\section{5. Conclusion}\label{conclusion}
-
 The project demonstrates how to secure the CI/CD Pipeline using the chosen
 automated tools. By integrating Trivy, CodeQL and SNYK we can display any
-vulnerabilities that can be found, fast and consistently throughout development.
+known vulnerabilities that can be found, fast and consistently throughout development.
+
+The analysis also presents that the automated tools we use have limitations.
+That meaning that a developer still needs to manually review the results and its
+aspects, that includes out of scope incident handling and runtime security.
 
 Without focusing on the application itself, the design of the pipeline is
 relevant for systems such as, and in this case Agramkow's platform. The pipeline
