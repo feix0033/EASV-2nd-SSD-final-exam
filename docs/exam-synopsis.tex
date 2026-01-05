@@ -61,6 +61,7 @@
 
 % Graphics
 \usepackage{graphicx}
+\usepackage{float}
 
 % TOC Management
 \usepackage{etoolbox}
@@ -82,7 +83,7 @@
       % Subtitle and Course
       {\Large PB Software Development\par}
       \vspace{0.5cm}
-      {\large Software Security\par}
+      {\large Secure Software Development\par}
       \vspace{0.5cm}
       {\large Rasmus Guldborg\par}
       \vspace{3cm}
@@ -244,7 +245,7 @@ The structure of the flow is as follows:
     \label{fig:pipeline-workflow}
 \end{figure}
 
-\textbf{Elaboration of the flow:}
+\textbf{Elaboration on the flow:}
 
 \begin{enumerate}
     \item Developer commits.
@@ -418,13 +419,13 @@ Then calculate and look at the risk score
 \end{equation}
 
 This score of 48 places the build in the HIGH RISK category, 
-also requiring immediate action from this point of view.
+requiring immediate action from this point of view.
 
-At the very beginning in the pipeline, in the pipeline, SNYK is identifying vulnerabilities at first
+At the very beginning in the pipeline, SNYK is identifying vulnerabilities at first
 which is very important in an environment like Agramkow in our case, 
 where their different services rely on shared libraries. 
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{screenshots/snyk-alert.png}
     \caption{SNYK Dependency Analysis Results}
@@ -473,7 +474,7 @@ turn highlights the term Secure by Design from the Cyber Resilience Act.
 
 \pagebreak
 
-\section{Resource}\label{resource}
+\section{Sources}\label{source}
 
 Cyber Resilience Act. 
 
