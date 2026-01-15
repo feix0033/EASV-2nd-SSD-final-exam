@@ -19,15 +19,9 @@ jobs:
       pull-requests: write
 
     steps:
-      # ============================================
-      # Step 1: Checkout Code
-      # ============================================
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # ============================================
-      # Step 2: Set up Node.js
-      # ============================================
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -37,9 +31,7 @@ jobs:
         working-directory: agramkow-api
         run: npm install
 
-      # ============================================
-      # SNYK - Software Composition Analysis (SCA)
-      # ============================================
+      # Dependency scanning via SNYK
       - name: Run SNYK to check for vulnerabilities
         working-directory: agramkow-api
         continue-on-error: true
@@ -62,9 +54,7 @@ jobs:
           path: agramkow-api/snyk-report.json
           retention-days: 30
 
-      # ============================================
-      # CodeQL - Static Application Security Testing (SAST)
-      # ============================================
+      # Static code analysis via CodeQL
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4
         with:
@@ -81,9 +71,7 @@ jobs:
           output: sarif-results
           upload: true
 
-      # ============================================
-      # Build Docker Image
-      # ============================================
+      # Build Docker image for container scanning
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -97,9 +85,7 @@ jobs:
         run: |
           docker save agramkow-api:${{ github.sha }} -o agramkow-api.tar
 
-      # ============================================
-      # Trivy - Container Vulnerability Scanning
-      # ============================================
+      # Container image and filesystem vulnerability scanning
       - name: Run Trivy vulnerability scanner on image
         uses: aquasecurity/trivy-action@master
         continue-on-error: true
@@ -134,9 +120,6 @@ jobs:
           path: trivy-report.json
           retention-days: 30
 
-      # ============================================
-      # Trivy - Filesystem Scanning (Additional)
-      # ============================================
       - name: Run Trivy filesystem scan
         uses: aquasecurity/trivy-action@master
         continue-on-error: true
@@ -155,40 +138,31 @@ jobs:
           sarif_file: 'trivy-fs-results.sarif'
           category: 'trivy-filesystem-scan'
 
-      # ============================================
-      # Security Gate - Evaluate Results
-      # ============================================
+      # Evaluate critical findings (monitoring mode for now)
       - name: Security Gate - Check Critical Issues
         if: always()
         run: |
-          echo "=== Security Gate Evaluation ==="
+          echo "Security Gate Evaluation"
           echo ""
 
-          # Check if critical vulnerabilities exist in Trivy report
           if [ -f trivy-report.json ]; then
             CRITICAL_COUNT=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="CRITICAL")] | length' trivy-report.json 2>/dev/null || echo "0")
             HIGH_COUNT=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="HIGH")] | length' trivy-report.json 2>/dev/null || echo "0")
 
-            echo "Trivy Container Scan:"
-            echo "  - Critical vulnerabilities: $CRITICAL_COUNT"
-            echo "  - High vulnerabilities: $HIGH_COUNT"
+            echo "Trivy Container Scan Results:"
+            echo "  Critical: $CRITICAL_COUNT"
+            echo "  High: $HIGH_COUNT"
             echo ""
 
-            # Security gate: Fail if critical vulnerabilities found
             if [ "$CRITICAL_COUNT" -gt "0" ]; then
-              echo "❌ SECURITY GATE FAILED: Critical vulnerabilities detected!"
-              echo "Action required: Review and remediate critical vulnerabilities before deployment"
-              # Uncomment the line below to enforce security gate
+              echo "❌ CRITICAL vulnerabilities found - requires remediation before deployment"
+              # TODO: Enforce gate when SLA for remediation is established
               # exit 1
             fi
           fi
 
-          echo "✓ Security analysis completed"
-          echo "⚠️  Note: Security gate is in monitoring mode. Review all findings in the Security tab."
+          echo "✓ Analysis complete - Review findings in Security tab"
 
-      # ============================================
-      # Generate Security Summary
-      # ============================================
       - name: Generate Security Summary
         if: always()
         run: |
@@ -222,11 +196,8 @@ jobs:
           echo "- Review CodeQL alerts in **Code scanning alerts**" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "---" >> $GITHUB_STEP_SUMMARY
-          echo "*Generated by Security CI/CD Pipeline - Commit: ${{ github.sha }}*" >> $GITHUB_STEP_SUMMARY
+          echo "*Commit: ${{ github.sha }}*" >> $GITHUB_STEP_SUMMARY
 
-      # ============================================
-      # Upload Security Reports
-      # ============================================
       - name: Collect security artifacts
         if: always()
         run: |
@@ -246,9 +217,6 @@ jobs:
           retention-days: 90
           if-no-files-found: warn
 
-  # ============================================
-  # Run Application Tests
-  # ============================================
   run-tests:
     name: Run Application Tests
     runs-on: ubuntu-latest
