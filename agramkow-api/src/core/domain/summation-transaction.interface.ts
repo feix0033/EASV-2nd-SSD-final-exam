@@ -1,5 +1,5 @@
 /**
- * Interface for a financial transaction that can be summed
+ * Interface for an Agramkow transaction that can be summed
  * Todo: Create the actual entity/model implementing this interface
  */
 export interface ISummationTransaction {

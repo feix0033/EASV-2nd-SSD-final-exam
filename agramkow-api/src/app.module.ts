@@ -26,7 +26,7 @@ import { TransactionsModule } from './application/transactions/transactions.modu
   imports: [
     InfrastructureModule, // Must come first for DI of repository implementations
     SummationModule, // Uses repositories via DI
-    TransactionsModule, // Financial transactions module
+    TransactionsModule, // Agramkow transactions module
   ],
   controllers: [AppController],
   providers: [AppService],

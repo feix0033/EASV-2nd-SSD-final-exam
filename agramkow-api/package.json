@@ -1,7 +1,7 @@
 {
-  "name": "financial-advisor-nest-js",
+  "name": "agramkow-api",
   "version": "0.0.1",
-  "description": "",
+  "description": "Agramkow API - Financial transaction management and analysis service",
   "author": "",
   "private": true,
   "license": "UNLICENSED",

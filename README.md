@@ -99,7 +99,7 @@ Code Commit → SNYK (SCA) → CodeQL (SAST) → Build → Trivy (Container Scan
 │   ├── architecture/                # Pipeline diagrams
 │   ├── reports/                     # Security reports
 │   └── exam-synopsis.md            # Project synopsis
-├── financial-advisor-nest-js/       # Sample NestJS application
+├── agramkow-api/                   # Agramkow NestJS application
 │   ├── src/                        # Application source code
 │   ├── test/                       # Unit and E2E tests
 │   ├── Dockerfile                  # Container configuration
