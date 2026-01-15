@@ -33,6 +33,7 @@ jobs:
 
       # Secret detection
       - name: Scan for hardcoded secrets with TruffleHog
+        if: github.event_name == 'push' || github.event_name == 'pull_request'
         uses: trufflesecurity/trufflehog@main
         continue-on-error: true
         with:
