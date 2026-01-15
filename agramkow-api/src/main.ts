@@ -7,12 +7,12 @@ async function bootstrap() {
 
   // Swagger configuration for all API endpoints
   const config = new DocumentBuilder()
-    .setTitle('Financial Advisor API')
+    .setTitle('Agramkow API')
     .setDescription(
-      'API documentation for personal finance tracking and summation features',
+      'API documentation for Agramkow transaction tracking and analysis',
     )
     .setVersion('1.0')
-    .addTag('financial-transactions')
+    .addTag('transactions')
     .addTag('summation')
     .build();
 

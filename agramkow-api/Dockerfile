@@ -1,4 +1,4 @@
-# Build stage
+# Build stage for Agramkow API
 FROM node:20-alpine AS builder
 
 # Set working directory

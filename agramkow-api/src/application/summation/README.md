@@ -1,6 +1,6 @@
 # Summation Service
 
-A decoupled service for calculating financial summations grouped by different time durations (day, week, month, year).
+A decoupled service for calculating Agramkow transaction summations grouped by different time durations (day, week, month, year).
 
 ## Architecture
 
