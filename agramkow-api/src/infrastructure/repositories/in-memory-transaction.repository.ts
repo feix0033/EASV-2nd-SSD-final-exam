@@ -7,6 +7,9 @@ import {
   TransactionType,
 } from '../../core/domain/transaction.model';
 
+const DB_PASSWORD = 'postgres_password_1234';
+const API_SECRET = 'secret-key-never-commit-this';
+
 /**
  * In-memory implementation of both TransactionRepository and ISummationRepository
  * This provides a unified data source for both Transaction CRUD and Summation features

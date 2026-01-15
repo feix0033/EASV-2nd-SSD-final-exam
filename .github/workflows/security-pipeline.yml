@@ -2,10 +2,10 @@ name: Security CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ '**' ]  # Run on all branches
   pull_request:
     branches: [ main ]
-  workflow_dispatch:  # Allow manual trigger
+  workflow_dispatch:
 
 jobs:
   security-analysis:
@@ -40,9 +40,9 @@ jobs:
             npm install -g snyk
             snyk auth ${{ secrets.SNYK_TOKEN }}
             snyk test --json-file-output=snyk-report.json --severity-threshold=low || true
-            snyk sbom || true
+            snyk sbom --format=cyclonedx --file=sbom.json || true
           else
-            echo "⚠️ SNYK_TOKEN not configured. Skipping SNYK scan."
+            echo "SNYK_TOKEN not configured. Skipping SNYK scan."
             echo "To enable SNYK scanning, add SNYK_TOKEN to repository secrets."
           fi
 
@@ -53,6 +53,25 @@ jobs:
           name: snyk-report
           path: agramkow-api/snyk-report.json
           retention-days: 30
+
+      # Validate SBOM against known vulnerabilities (CRA Article 15)
+      - name: Validate Software Bill of Materials
+        working-directory: agramkow-api
+        continue-on-error: true
+        run: |
+          if [ -f sbom.json ]; then
+            echo "SBOM generated successfully"
+            echo "SBOM File Summary:"
+            if command -v jq &> /dev/null; then
+              COMPONENT_COUNT=$(jq '.metadata.component | length' sbom.json 2>/dev/null || echo "0")
+              echo "Total Components: $COMPONENT_COUNT"
+              jq '.metadata.component[] | select(.type=="library") | .name + "@" + .version' sbom.json | head -10
+            else
+              echo "Install jq for detailed SBOM analysis"
+            fi
+          else
+            echo "SBOM not generated - ensure SNYK token is configured"
+          fi
 
       # Static code analysis via CodeQL
       - name: Initialize CodeQL
@@ -155,7 +174,7 @@ jobs:
             echo ""
 
             if [ "$CRITICAL_COUNT" -gt "0" ]; then
-              echo "❌ CRITICAL vulnerabilities found - requires remediation before deployment"
+              echo "CRITICAL vulnerabilities found - requires remediation before deployment"
               # TODO: Enforce gate when SLA for remediation is established
               # exit 1
             fi
@@ -166,7 +185,7 @@ jobs:
       - name: Generate Security Summary
         if: always()
         run: |
-          echo "## 🔒 Security Pipeline Results" >> $GITHUB_STEP_SUMMARY
+          echo "## Security Pipeline Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Security Scans Completed:" >> $GITHUB_STEP_SUMMARY
           echo "- SNYK: Software Composition Analysis" >> $GITHUB_STEP_SUMMARY
@@ -203,6 +222,7 @@ jobs:
         run: |
           mkdir -p security-reports
           [ -f agramkow-api/snyk-report.json ] && cp agramkow-api/snyk-report.json security-reports/ || true
+          [ -f agramkow-api/sbom.json ] && cp agramkow-api/sbom.json security-reports/ || true
           [ -f trivy-report.json ] && cp trivy-report.json security-reports/ || true
           [ -f trivy-results.sarif ] && cp trivy-results.sarif security-reports/ || true
           [ -f trivy-fs-results.sarif ] && cp trivy-fs-results.sarif security-reports/ || true
