@@ -33,14 +33,12 @@ jobs:
 
       # Secret detection
       - name: Scan for hardcoded secrets with TruffleHog
-        if: github.event_name == 'push' || github.event_name == 'pull_request'
         uses: trufflesecurity/trufflehog@main
         continue-on-error: true
         with:
           path: .
-          include-paths: agramkow-api
-          base: ${{ github.event.repository.default_branch }}
           head: HEAD
+
 
       # Dependency scanning via SNYK
       - name: Run SNYK to check for vulnerabilities
