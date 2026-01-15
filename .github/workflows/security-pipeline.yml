@@ -38,6 +38,29 @@ jobs:
         with:
           path: .
           head: HEAD
+          extra_args: "--json --redact"
+
+      - name: Save TruffleHog output
+        run: |
+          mkdir -p security-reports
+          # Run TruffleHog scanning again, saving JSON output
+          trufflehog filesystem ./agramkow-api --json --redact > security-reports/secrets-scan.json || true
+
+      - name: Upload TruffleHog secrets report
+        uses: actions/upload-artifact@v4
+        if: always() && hashFiles('security-reports/secrets-scan.json') != ''
+        with:
+          name: secrets-scan
+          path: security-reports/secrets-scan.json
+          retention-days: 30
+
+      - name: Summary of detected secrets
+        if: always() && hashFiles('security-reports/secrets-scan.json') != ''
+        run: |
+          COUNT=$(jq length security-reports/secrets-scan.json 2>/dev/null || echo 0)
+          echo "TruffleHog detected $COUNT potential secrets."
+          echo "Detailed secrets log saved as artifact."
+
 
 
       # Dependency scanning via SNYK
