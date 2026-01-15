@@ -4,7 +4,7 @@ A comprehensive demonstration of DevSecOps practices using SNYK, CodeQL, and Tri
 
 ## Overview
 
-This project demonstrates how to integrate automated security analysis tools into a CI/CD pipeline to identify vulnerabilities during the build process. Using a NestJS financial tracking application as a test case, the project implements three key security tools:
+This project demonstrates how to integrate automated security analysis tools into a CI/CD pipeline to identify vulnerabilities during the build process. Using a NestJS financial tracking application (Agramkow) as a test case, the project implements three key security tools:
 
 - **SNYK** - Software Composition Analysis (SCA)
 - **CodeQL** - Static Application Security Testing (SAST)
@@ -126,7 +126,7 @@ Code Commit → SNYK (SCA) → CodeQL (SAST) → Build → Trivy (Container Scan
 
 2. **Install dependencies**
    ```bash
-   cd financial-advisor-nest-js
+   cd agramkow-api
    npm install
    ```
 
@@ -139,7 +139,7 @@ Code Commit → SNYK (SCA) → CodeQL (SAST) → Build → Trivy (Container Scan
 
 ```bash
 # Navigate to application directory
-cd financial-advisor-nest-js
+cd agramkow-api
 
 # Development mode
 npm run start:dev
@@ -151,7 +151,7 @@ npm run start:prod
 npm run test
 
 # Build Docker image
-docker build -t financial-advisor .
+docker build -t agramkow-api .
 ```
 
 ## Security Pipeline Workflow
