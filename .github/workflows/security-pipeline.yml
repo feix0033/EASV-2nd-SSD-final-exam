@@ -34,14 +34,14 @@ jobs:
           node-version: '20'
 
       - name: Install dependencies
-        working-directory: financial-advisor-nest-js
+        working-directory: agramkow-api
         run: npm install
 
       # ============================================
       # SNYK - Software Composition Analysis (SCA)
       # ============================================
       - name: Run SNYK to check for vulnerabilities
-        working-directory: financial-advisor-nest-js
+        working-directory: agramkow-api
         continue-on-error: true
         run: |
           if [ -n "${{ secrets.SNYK_TOKEN }}" ]; then
@@ -56,10 +56,10 @@ jobs:
 
       - name: Upload SNYK report
         uses: actions/upload-artifact@v4
-        if: always() && hashFiles('financial-advisor-nest-js/snyk-report.json') != ''
+        if: always() && hashFiles('agramkow-api/snyk-report.json') != ''
         with:
           name: snyk-report
-          path: financial-advisor-nest-js/snyk-report.json
+          path: agramkow-api/snyk-report.json
           retention-days: 30
 
       # ============================================
@@ -88,14 +88,14 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build Docker image
-        working-directory: financial-advisor-nest-js
+        working-directory: agramkow-api
         run: |
-          docker build -t financial-advisor:${{ github.sha }} .
-          docker tag financial-advisor:${{ github.sha }} financial-advisor:latest
+          docker build -t agramkow-api:${{ github.sha }} .
+          docker tag agramkow-api:${{ github.sha }} agramkow-api:latest
 
       - name: Save Docker image
         run: |
-          docker save financial-advisor:${{ github.sha }} -o financial-advisor.tar
+          docker save agramkow-api:${{ github.sha }} -o agramkow-api.tar
 
       # ============================================
       # Trivy - Container Vulnerability Scanning
@@ -104,7 +104,7 @@ jobs:
         uses: aquasecurity/trivy-action@master
         continue-on-error: true
         with:
-          image-ref: 'financial-advisor:${{ github.sha }}'
+          image-ref: 'agramkow-api:${{ github.sha }}'
           format: 'sarif'
           output: 'trivy-results.sarif'
           severity: 'CRITICAL,HIGH,MEDIUM,LOW'
@@ -121,7 +121,7 @@ jobs:
         uses: aquasecurity/trivy-action@master
         continue-on-error: true
         with:
-          image-ref: 'financial-advisor:${{ github.sha }}'
+          image-ref: 'agramkow-api:${{ github.sha }}'
           format: 'json'
           output: 'trivy-report.json'
           severity: 'CRITICAL,HIGH,MEDIUM,LOW'
@@ -142,7 +142,7 @@ jobs:
         continue-on-error: true
         with:
           scan-type: 'fs'
-          scan-ref: './financial-advisor-nest-js'
+          scan-ref: './agramkow-api'
           format: 'sarif'
           output: 'trivy-fs-results.sarif'
           severity: 'CRITICAL,HIGH'
@@ -231,7 +231,7 @@ jobs:
         if: always()
         run: |
           mkdir -p security-reports
-          [ -f financial-advisor-nest-js/snyk-report.json ] && cp financial-advisor-nest-js/snyk-report.json security-reports/ || true
+          [ -f agramkow-api/snyk-report.json ] && cp agramkow-api/snyk-report.json security-reports/ || true
           [ -f trivy-report.json ] && cp trivy-report.json security-reports/ || true
           [ -f trivy-results.sarif ] && cp trivy-results.sarif security-reports/ || true
           [ -f trivy-fs-results.sarif ] && cp trivy-fs-results.sarif security-reports/ || true
@@ -265,24 +265,24 @@ jobs:
           node-version: '20'
 
       - name: Install dependencies
-        working-directory: financial-advisor-nest-js
+        working-directory: agramkow-api
         run: npm install
 
       - name: Run unit tests
-        working-directory: financial-advisor-nest-js
+        working-directory: agramkow-api
         run: npm run test
         continue-on-error: true
 
       - name: Run test coverage
-        working-directory: financial-advisor-nest-js
+        working-directory: agramkow-api
         run: npm run test:cov
         continue-on-error: true
 
       - name: Upload coverage reports
         uses: actions/upload-artifact@v4
-        if: always() && hashFiles('financial-advisor-nest-js/coverage/**/*') != ''
+        if: always() && hashFiles('agramkow-api/coverage/**/*') != ''
         with:
           name: coverage-report
-          path: financial-advisor-nest-js/coverage
+          path: agramkow-api/coverage
           retention-days: 30
           if-no-files-found: warn
