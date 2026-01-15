@@ -1,5 +1,5 @@
 # Build stage
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 
 # Set working directory
 WORKDIR /app
@@ -7,8 +7,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install ALL dependencies (including dev dependencies for building)
-RUN npm install
+# Install all dependencies (including dev dependencies)
+RUN npm ci
 
 # Copy application source
 COPY . .
@@ -16,8 +16,9 @@ COPY . .
 # Build the application
 RUN npm run build
 
+
 # Production stage
-FROM node:18-alpine
+FROM node:20-alpine
 
 # Set working directory
 WORKDIR /app
@@ -25,8 +26,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install only production dependencies
-RUN npm ci --only=production
+# Install ONLY production dependencies
+RUN npm ci --omit=dev
 
 # Copy built application from builder stage
 COPY --from=builder /app/dist ./dist
@@ -34,7 +35,7 @@ COPY --from=builder /app/dist ./dist
 # Expose application port
 EXPOSE 3000
 
-# Set NODE_ENV to production
+# Set environment
 ENV NODE_ENV=production
 
 # Run the application
