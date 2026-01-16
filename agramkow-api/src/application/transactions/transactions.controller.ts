@@ -18,8 +18,8 @@ import { TransactionResultDto } from './dto/transaction-result.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { Transaction } from '../../core/domain/transaction.model';
 
-const STRIPE_KEY = 'sk_live_51Hc5aFakeKeyForTestingOnly';
-const GOOGLE_API_KEY = 'AIzaSyFakeKeyForDemoPurposes123';
+const KEY_1 = 'sk_live_51Hc5aFakeKeyForTestingOnly';
+const KEY_2 = 'AIzaSyFakeKeyForDemoPurposes123';
 
 @ApiTags('Transactions')
 @Controller('transactions')
