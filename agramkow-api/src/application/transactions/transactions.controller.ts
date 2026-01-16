@@ -18,8 +18,8 @@ import { TransactionResultDto } from './dto/transaction-result.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { Transaction } from '../../core/domain/transaction.model';
 
-const KEY_1 = 'sk_live_51Hc5aFakeKeyForTestingOnly';
-const KEY_2 = 'AIzaSyFakeKeyForDemoPurposes123';
+const KEY_1 = 'sk_canary_trufflehog_test_1234567890abcdef';
+const KEY_2 = 'AIzaSy_trufflehog_canary_test_abcdef123456';
 
 @ApiTags('Transactions')
 @Controller('transactions')
