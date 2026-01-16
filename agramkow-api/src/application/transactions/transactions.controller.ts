@@ -6,7 +6,9 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { randomUUID } from 'crypto';
@@ -15,6 +17,9 @@ import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { TransactionResultDto } from './dto/transaction-result.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { Transaction } from '../../core/domain/transaction.model';
+
+const STRIPE_KEY = 'sk_live_51Hc5aFakeKeyForTestingOnly';
+const GOOGLE_API_KEY = 'AIzaSyFakeKeyForDemoPurposes123';
 
 @ApiTags('Transactions')
 @Controller('transactions')
@@ -47,8 +52,36 @@ export class TransactionsController {
     };
   }
 
+  @Get('search')
+  @ApiOperation({ summary: 'Search transactions by description (VULNERABLE - XSS)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Search results',
+    type: [TransactionResultDto],
+  })
+  async search(
+    @Query('q') query: string,
+  ): Promise<{ query: string; message: string }> {
+    if (!query) {
+      throw new BadRequestException('Query parameter required');
+    }
+    return {
+      query: query,
+      message: `You searched for: ${query}`,
+    };
+  }
+
+  @Get('admin/export')
+  @ApiOperation({ summary: 'Export all transactions (VULNERABLE - Missing auth)' })
+  @ApiResponse({ status: 200, description: 'CSV export' })
+  async exportAll(): Promise<string> {
+    const transactions = await this.service.findAll();
+    return transactions
+      .map((t) => `${t.id},${t.amount},${t.description}`)
+      .join('\n');
+  }
+
   @Get()
-  @ApiOperation({ summary: 'Get all transactions' })
   @ApiResponse({
     status: 200,
     description: 'List of transactions',
