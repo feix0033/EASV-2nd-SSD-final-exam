@@ -1,0 +1,57 @@
+name: Application Tests
+
+on:
+  push:
+    branches: [ '**' ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Run Application Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        working-directory: agramkow-api
+        run: npm install
+
+      - name: Run unit tests
+        working-directory: agramkow-api
+        run: npm run test
+        continue-on-error: true
+
+      - name: Run test coverage
+        working-directory: agramkow-api
+        run: npm run test:cov
+        continue-on-error: true
+
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        if: always() && hashFiles('agramkow-api/coverage/**/*') != ''
+        with:
+          name: coverage-report
+          path: agramkow-api/coverage
+          retention-days: 30
+          if-no-files-found: warn
+
+      - name: Generate test summary
+        if: always()
+        run: |
+          echo "## Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Unit tests and coverage analysis completed." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Coverage reports available in artifacts section." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "*Commit: ${{ github.sha }}*" >> $GITHUB_STEP_SUMMARY

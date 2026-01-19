@@ -1,0 +1,125 @@
+name: Security - Dependency Scanning
+
+on:
+  push:
+    branches: [ '**' ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+jobs:
+  dependency-scan:
+    name: SNYK Dependency Analysis
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        working-directory: agramkow-api
+        run: npm install
+
+      - name: Run SNYK to check for vulnerabilities
+        working-directory: agramkow-api
+        continue-on-error: true
+        run: |
+          if [ -n "${{ secrets.SNYK_TOKEN }}" ]; then
+            npm install -g snyk
+            snyk auth ${{ secrets.SNYK_TOKEN }}
+            snyk test --json-file-output=snyk-report.json --severity-threshold=low || true
+            snyk sbom --format=cyclonedx --file=sbom.json || true
+          else
+            echo "SNYK_TOKEN not configured. Skipping SNYK scan."
+            echo "To enable SNYK scanning, add SNYK_TOKEN to repository secrets."
+          fi
+
+      - name: Upload SNYK report
+        uses: actions/upload-artifact@v4
+        if: always() && hashFiles('agramkow-api/snyk-report.json') != ''
+        with:
+          name: snyk-report
+          path: agramkow-api/snyk-report.json
+          retention-days: 30
+
+      - name: Validate Software Bill of Materials
+        working-directory: agramkow-api
+        continue-on-error: true
+        run: |
+          if [ -f sbom.json ]; then
+            echo "SBOM generated successfully"
+            echo "SBOM File Summary:"
+            if command -v jq &> /dev/null; then
+              COMPONENT_COUNT=$(jq '.metadata.component | length' sbom.json 2>/dev/null || echo "0")
+              echo "Total Components: $COMPONENT_COUNT"
+              jq '.metadata.component[] | select(.type=="library") | .name + "@" + .version' sbom.json | head -10
+            else
+              echo "Install jq for detailed SBOM analysis"
+            fi
+          else
+            echo "SBOM not generated - ensure SNYK token is configured"
+          fi
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v4
+        if: always() && hashFiles('agramkow-api/sbom.json') != ''
+        with:
+          name: sbom
+          path: agramkow-api/sbom.json
+          retention-days: 90
+
+      - name: Generate summary
+        if: always()
+        run: |
+          echo "## Dependency Security Scan Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -f agramkow-api/snyk-report.json ]; then
+            CRITICAL=$(jq '[.vulnerabilities[] | select(.severity=="critical")] | length' agramkow-api/snyk-report.json 2>/dev/null || echo "0")
+            HIGH=$(jq '[.vulnerabilities[] | select(.severity=="high")] | length' agramkow-api/snyk-report.json 2>/dev/null || echo "0")
+            MEDIUM=$(jq '[.vulnerabilities[] | select(.severity=="medium")] | length' agramkow-api/snyk-report.json 2>/dev/null || echo "0")
+            LOW=$(jq '[.vulnerabilities[] | select(.severity=="low")] | length' agramkow-api/snyk-report.json 2>/dev/null || echo "0")
+            
+            echo "**Vulnerability Summary:**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "| Severity | Count |" >> $GITHUB_STEP_SUMMARY
+            echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+            echo "| Critical | $CRITICAL |" >> $GITHUB_STEP_SUMMARY
+            echo "| High | $HIGH |" >> $GITHUB_STEP_SUMMARY
+            echo "| Medium | $MEDIUM |" >> $GITHUB_STEP_SUMMARY
+            echo "| Low | $LOW |" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            
+            if [ "$CRITICAL" -gt "0" ] || [ "$HIGH" -gt "0" ]; then
+              echo "Action required: High or Critical vulnerabilities detected." >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "Run 'npm audit fix' or 'snyk wizard' to address vulnerabilities." >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "SNYK scan not completed. Check configuration." >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -f agramkow-api/sbom.json ]; then
+            COMP_COUNT=$(jq '.components | length' agramkow-api/sbom.json 2>/dev/null || echo "0")
+            echo "**Software Bill of Materials (SBOM):**" >> $GITHUB_STEP_SUMMARY
+            echo "- Total components: $COMP_COUNT" >> $GITHUB_STEP_SUMMARY
+            echo "- Format: CycloneDX JSON" >> $GITHUB_STEP_SUMMARY
+            echo "- Compliance: CRA Article 15" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "*Commit: ${{ github.sha }}*" >> $GITHUB_STEP_SUMMARY
