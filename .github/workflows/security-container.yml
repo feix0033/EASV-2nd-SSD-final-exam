@@ -87,29 +87,66 @@ jobs:
           sarif_file: 'trivy-fs-results.sarif'
           category: 'trivy-filesystem-scan'
 
-      - name: Security Gate - Check Critical Issues
+      - name: Security Gate - Phased Enforcement
         if: always()
         run: |
           echo "Security Gate Evaluation"
           echo ""
 
-          if [ -f trivy-report.json ]; then
-            CRITICAL_COUNT=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="CRITICAL")] | length' trivy-report.json 2>/dev/null || echo "0")
-            HIGH_COUNT=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="HIGH")] | length' trivy-report.json 2>/dev/null || echo "0")
+          if [ ! -f trivy-report.json ]; then
+            echo "No Trivy report found - skipping security gate"
+            exit 0
+          fi
 
-            echo "Trivy Container Scan Results:"
-            echo "  Critical: $CRITICAL_COUNT"
-            echo "  High: $HIGH_COUNT"
-            echo ""
+          CRITICAL_COUNT=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="CRITICAL")] | length' trivy-report.json 2>/dev/null || echo "0")
+          HIGH_COUNT=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="HIGH")] | length' trivy-report.json 2>/dev/null || echo "0")
+          MEDIUM_COUNT=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity=="MEDIUM")] | length' trivy-report.json 2>/dev/null || echo "0")
 
+          echo "Trivy Container Scan Results:"
+          echo "  Critical: $CRITICAL_COUNT"
+          echo "  High: $HIGH_COUNT"
+          echo "  Medium: $MEDIUM_COUNT"
+          echo ""
+
+          BRANCH_NAME="${GITHUB_REF##*/}"
+
+          if [ "$BRANCH_NAME" = "main" ]; then
+            ENVIRONMENT="production"
+          elif [[ "$BRANCH_NAME" == release/* ]]; then
+            ENVIRONMENT="staging"
+          else
+            ENVIRONMENT="development"
+          fi
+
+          echo "Environment: $ENVIRONMENT"
+          echo ""
+
+          if [ "$ENVIRONMENT" = "development" ]; then
+            echo "Monitoring mode enabled"
+            echo "All vulnerabilities logged"
+            echo "No blocking enforced"
+          fi
+
+          if [ "$ENVIRONMENT" = "staging" ]; then
             if [ "$CRITICAL_COUNT" -gt "0" ]; then
-              echo "CRITICAL vulnerabilities found - requires remediation before deployment"
-              # TODO: Enforce gate when SLA for remediation is established
-              # exit 1
+              echo "Blocking deployment due to CRITICAL vulnerabilities"
+              exit 1
+            fi
+            echo "HIGH vulnerabilities logged as warnings"
+          fi
+
+          if [ "$ENVIRONMENT" = "production" ]; then
+            if [ "$CRITICAL_COUNT" -gt "0" ] || [ "$HIGH_COUNT" -gt "0" ]; then
+              echo "Blocking deployment due to CRITICAL or HIGH vulnerabilities"
+              exit 1
+            fi
+            if [ "$MEDIUM_COUNT" -gt "0" ]; then
+              echo "MEDIUM vulnerabilities detected - review recommended"
             fi
           fi
 
-          echo "Analysis complete - Review findings in Security tab"
+          echo ""
+          echo "Security gate evaluation completed"
 
       - name: Generate Security Summary
         if: always()
