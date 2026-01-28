@@ -2,9 +2,9 @@ name: Application Tests
 
 on:
   push:
-    branches: [ '**' ]
+    branches: ['**']
   pull_request:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -20,10 +20,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: agramkow-api/package-lock.json
 
       - name: Install dependencies
         working-directory: agramkow-api
-        run: npm install
+        run: npm ci
 
       - name: Run unit tests
         working-directory: agramkow-api
@@ -39,7 +41,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always() && hashFiles('agramkow-api/coverage/**/*') != ''
         with:
-          name: coverage-report
+          name: coverage-report-${{ github.sha }}
           path: agramkow-api/coverage
           retention-days: 30
           if-no-files-found: warn
@@ -49,9 +51,15 @@ jobs:
         run: |
           echo "## Test Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Unit tests and coverage analysis completed." >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Coverage reports available in artifacts section." >> $GITHUB_STEP_SUMMARY
+          
+          if [ -d "agramkow-api/coverage" ]; then
+            echo "Unit tests and coverage analysis completed." >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Coverage reports available in artifacts section." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "Tests completed. Coverage data not available." >> $GITHUB_STEP_SUMMARY
+          fi
+          
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "---" >> $GITHUB_STEP_SUMMARY
           echo "*Commit: ${{ github.sha }}*" >> $GITHUB_STEP_SUMMARY
