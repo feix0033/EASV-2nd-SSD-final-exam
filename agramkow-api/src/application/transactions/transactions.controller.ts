@@ -18,9 +18,6 @@ import { TransactionResultDto } from './dto/transaction-result.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { Transaction } from '../../core/domain/transaction.model';
 
-const KEY_1 = 'sk_canary_trufflehog_test_1234567890abcdef';
-const KEY_2 = 'AIzaSy_trufflehog_canary_test_abcdef123456';
-
 @ApiTags('Transactions')
 @Controller('transactions')
 export class TransactionsController {
@@ -53,15 +50,15 @@ export class TransactionsController {
   }
 
   @Get('search')
-  @ApiOperation({ summary: 'Search transactions by description (VULNERABLE - XSS)' })
+  @ApiOperation({
+    summary: 'Search transactions by description (VULNERABLE - XSS)',
+  })
   @ApiResponse({
     status: 200,
     description: 'Search results',
     type: [TransactionResultDto],
   })
-  async search(
-    @Query('q') query: string,
-  ): Promise<{ query: string; message: string }> {
+  search(@Query('q') query: string): { query: string; message: string } {
     if (!query) {
       throw new BadRequestException('Query parameter required');
     }
@@ -72,7 +69,9 @@ export class TransactionsController {
   }
 
   @Get('admin/export')
-  @ApiOperation({ summary: 'Export all transactions (VULNERABLE - Missing auth)' })
+  @ApiOperation({
+    summary: 'Export all transactions (VULNERABLE - Missing auth)',
+  })
   @ApiResponse({ status: 200, description: 'CSV export' })
   async exportAll(): Promise<string> {
     const transactions = await this.service.findAll();

@@ -1,0 +1,90 @@
+name: PR Validation
+
+on:
+  pull_request:
+    branches: [main, 'release/**']
+    types: [opened, synchronize, reopened]
+
+jobs:
+  pr-checks:
+    name: Pull Request Checks
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate PR title
+        uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            docs
+            style
+            refactor
+            perf
+            test
+            build
+            ci
+            chore
+            revert
+          requireScope: false
+          ignoreLabels: |
+            dependencies
+            skip-validation
+
+      - name: Check for merge conflicts
+        run: |
+          git fetch origin ${{ github.base_ref }}
+          CONFLICTS=$(git diff --name-only --diff-filter=U origin/${{ github.base_ref }}...HEAD || true)
+          
+          if [ -n "$CONFLICTS" ]; then
+            echo "Merge conflicts detected:"
+            echo "$CONFLICTS"
+            exit 1
+          else
+            echo "No merge conflicts detected"
+          fi
+
+      - name: Check branch name
+        run: |
+          BRANCH_NAME="${{ github.head_ref }}"
+          
+          if [[ "$BRANCH_NAME" =~ ^(feature|bugfix|hotfix|release|docs|chore)/.+ ]]; then
+            echo "Branch name follows convention: $BRANCH_NAME"
+          else
+            echo "Warning: Branch name does not follow convention (feature/, bugfix/, hotfix/, release/, docs/, chore/)"
+            echo "Current branch: $BRANCH_NAME"
+          fi
+
+      - name: Check file size limits
+        run: |
+          MAX_SIZE=5242880
+          LARGE_FILES=$(find . -type f -size +5M -not -path "*/node_modules/*" -not -path "*/.git/*" || true)
+          
+          if [ -n "$LARGE_FILES" ]; then
+            echo "Warning: Large files detected (>5MB):"
+            echo "$LARGE_FILES"
+          else
+            echo "No large files detected"
+          fi
+
+      - name: Generate PR summary
+        if: always()
+        run: |
+          echo "## Pull Request Validation" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Source Branch:** \`${{ github.head_ref }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Target Branch:** \`${{ github.base_ref }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "All automated checks must pass before merge." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "*Commit: ${{ github.sha }}*" >> $GITHUB_STEP_SUMMARY

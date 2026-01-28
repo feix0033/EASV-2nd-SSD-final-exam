@@ -2,8 +2,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ISummationRepository, ISummationTransaction } from '../../core';
 import { SummationService } from './summation.service';
 import { SummationQueryDto } from './dto/summation-query.dto';
-import { GroupBy } from './enums/group-by.enum';
-import { Period } from './enums/period.enum';
 
 describe('SummationService', () => {
   let service: SummationService;
