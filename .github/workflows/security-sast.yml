@@ -2,9 +2,9 @@ name: Security - Static Analysis
 
 on:
   push:
-    branches: [ '**' ]
+    branches: ['**']
   pull_request:
-    branches: [ main ]
+    branches: [main]
   schedule:
     - cron: '0 6 * * 1'
   workflow_dispatch:
@@ -46,9 +46,9 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "Static code analysis completed successfully." >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Analysis configuration:**" >> $GITHUB_STEP_SUMMARY
+          echo "**Analysis Configuration:**" >> $GITHUB_STEP_SUMMARY
           echo "- Languages: JavaScript/TypeScript" >> $GITHUB_STEP_SUMMARY
-          echo "- Query suite: Security Extended" >> $GITHUB_STEP_SUMMARY
+          echo "- Query Suite: Security Extended" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "View detailed findings in the Security tab under Code scanning alerts." >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY

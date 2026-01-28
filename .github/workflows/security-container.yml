@@ -2,9 +2,9 @@ name: Security - Container Scanning
 
 on:
   push:
-    branches: [ '**' ]
+    branches: ['**']
   pull_request:
-    branches: [ main ]
+    branches: [main]
   schedule:
     - cron: '0 4 * * 0'
   workflow_dispatch:
@@ -31,10 +31,6 @@ jobs:
           docker build -t agramkow-api:${{ github.sha }} .
           docker tag agramkow-api:${{ github.sha }} agramkow-api:latest
 
-      - name: Save Docker image
-        run: |
-          docker save agramkow-api:${{ github.sha }} -o agramkow-api.tar
-
       - name: Run Trivy vulnerability scanner on image
         uses: aquasecurity/trivy-action@master
         continue-on-error: true
@@ -45,7 +41,7 @@ jobs:
           severity: 'CRITICAL,HIGH,MEDIUM,LOW'
 
       - name: Upload Trivy results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v4
+        uses: github/codeql-action/upload-sarif@v3
         if: always() && hashFiles('trivy-results.sarif') != ''
         continue-on-error: true
         with:
@@ -61,14 +57,6 @@ jobs:
           output: 'trivy-report.json'
           severity: 'CRITICAL,HIGH,MEDIUM,LOW'
 
-      - name: Upload Trivy JSON report
-        uses: actions/upload-artifact@v4
-        if: always() && hashFiles('trivy-report.json') != ''
-        with:
-          name: trivy-report
-          path: trivy-report.json
-          retention-days: 30
-
       - name: Run Trivy filesystem scan
         uses: aquasecurity/trivy-action@master
         continue-on-error: true
@@ -80,7 +68,7 @@ jobs:
           severity: 'CRITICAL,HIGH'
 
       - name: Upload Trivy filesystem results
-        uses: github/codeql-action/upload-sarif@v4
+        uses: github/codeql-action/upload-sarif@v3
         if: always() && hashFiles('trivy-fs-results.sarif') != ''
         continue-on-error: true
         with:
