@@ -12,9 +12,11 @@ FROM node:25.5.0-alpine
 WORKDIR /app
 COPY package*.json ./
 
-# Install tar@7.5.7 globally and force npm to update its dependency
 RUN npm install -g tar@7.5.7 && \
-    npm install -g npm@latest
+    cd /usr/local/lib/node_modules/npm/node_modules && \
+    rm -rf tar && \
+    npm install tar@7.5.7 --no-save && \
+    cd /app
 
 RUN npm ci --omit=dev
 COPY --from=builder /app/dist ./dist
