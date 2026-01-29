@@ -12,7 +12,6 @@ FROM node:25.5.0-alpine
 WORKDIR /app
 COPY package*.json ./
 
-# Fix CVE-2026-24842 by replacing npm's bundled tar with the patched version
 RUN npm install -g tar@7.5.7 && \
     rm -rf /usr/local/lib/node_modules/npm/node_modules/tar && \
     cp -r /usr/local/lib/node_modules/tar /usr/local/lib/node_modules/npm/node_modules/
