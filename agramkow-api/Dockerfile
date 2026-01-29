@@ -7,11 +7,14 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
+# First, update npm itself to latest version
+RUN npm install -g npm@10.8.3
+
 # Install all dependencies (including dev dependencies)
 RUN npm ci
 
-# Update vulnerable npm dependencies to specific secure versions
-RUN npm install brace-expansion@2.0.2 cross-spawn@7.0.5 diff@5.2.2 glob@10.5.0
+# Update vulnerable npm dependencies to latest secure versions
+RUN npm install brace-expansion@latest cross-spawn@latest diff@latest glob@latest
 
 # Copy application source
 COPY . .
@@ -26,19 +29,30 @@ FROM node:20-alpine
 # Set working directory
 WORKDIR /app
 
-# Update vulnerable global npm packages in the base image to specific secure versions
-RUN npm install -g npm@10.8.3 && \
-    npm install -g brace-expansion@2.0.2 && \
-    npm install -g cross-spawn@7.0.5 && \
-    npm install -g diff@5.2.2 && \
-    npm install -g glob@10.5.0 && \
-    npm install -g tar@7.5.7
+# First, update npm to latest version
+RUN npm install -g npm@10.8.3
+
+# Update ALL global npm packages to their latest versions
+RUN npm update -g
+
+# Specifically update known vulnerable packages to ensure latest versions
+RUN npm install -g brace-expansion@latest && \
+    npm install -g cross-spawn@latest && \
+    npm install -g diff@latest && \
+    npm install -g glob@latest && \
+    npm install -g tar@latest
+
+# Clean npm cache to reduce image size
+RUN npm cache clean --force
 
 # Copy package files
 COPY package*.json ./
 
 # Install ONLY production dependencies
 RUN npm ci --omit=dev
+
+# Update project dependencies to latest versions
+RUN npm install brace-expansion@latest cross-spawn@latest diff@latest glob@latest tar@latest
 
 # Copy built application from builder stage
 COPY --from=builder /app/dist ./dist
