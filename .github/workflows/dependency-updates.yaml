@@ -1,17 +1,22 @@
-name: Dependency Updates
+name: Security - Dependency Scanning
 
 on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: [main]
   schedule:
-    - cron: '0 0 * * 1'
+    - cron: '0 2 * * *'
   workflow_dispatch:
 
 jobs:
-  update-dependencies:
-    name: Update Dependencies
+  dependency-scan:
+    name: SNYK Dependency Analysis
     runs-on: ubuntu-latest
 
     permissions:
-      contents: write
+      contents: read
+      security-events: write
       pull-requests: write
 
     steps:
@@ -29,86 +34,150 @@ jobs:
         working-directory: agramkow-api
         run: npm ci
 
-      - name: Check for outdated packages
-        working-directory: agramkow-api
-        run: |
-          npm outdated --json > outdated.json || true
-          
-          if [ -s outdated.json ]; then
-            echo "Outdated packages found"
-            cat outdated.json
-          else
-            echo "All packages are up to date"
-          fi
-
-      - name: Update patch and minor versions
-        working-directory: agramkow-api
-        run: |
-          npm update --save
-          npm audit fix --audit-level=moderate || true
-
-      - name: Run tests
-        working-directory: agramkow-api
-        run: npm test
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/node@master
         continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=low --json-file-output=snyk-report.json
+          command: test
+        if: secrets.SNYK_TOKEN != ''
 
-      - name: Check for changes
-        id: changes
+      - name: Generate SARIF report
+        uses: snyk/actions/node@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --sarif-file-output=snyk.sarif
+          command: test
+        if: secrets.SNYK_TOKEN != ''
+
+      - name: Upload Snyk results to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() && secrets.SNYK_TOKEN != '' && hashFiles('snyk.sarif') != ''
+        with:
+          sarif_file: snyk.sarif
+          category: snyk-dependencies
+
+      - name: Run Snyk to monitor project
+        uses: snyk/actions/node@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          command: monitor
+          args: --project-name=${{ github.repository }}/${{ github.ref_name }}
+        if: github.event_name != 'pull_request' && secrets.SNYK_TOKEN != ''
+
+      - name: Generate SBOM with Snyk
+        working-directory: agramkow-api
+        continue-on-error: true
         run: |
-          if git diff --quiet; then
-            echo "has_changes=false" >> $GITHUB_OUTPUT
-            echo "No dependency updates available"
-          else
-            echo "has_changes=true" >> $GITHUB_OUTPUT
-            echo "Dependency updates available"
+          if [ -n "${{ secrets.SNYK_TOKEN }}" ]; then
+            npm install -g snyk
+            snyk auth ${{ secrets.SNYK_TOKEN }}
+            snyk sbom --format=cyclonedx1.4 --json-file-output=sbom.json || true
           fi
 
-      - name: Create Pull Request
-        if: steps.changes.outputs.has_changes == 'true'
-        uses: peter-evans/create-pull-request@v6
+      - name: Check for license compliance
+        working-directory: agramkow-api
+        continue-on-error: true
+        run: |
+          if [ -n "${{ secrets.SNYK_TOKEN }}" ]; then
+            snyk test --json --severity-threshold=low > snyk-licenses.json || true
+          fi
+
+      - name: Upload Snyk report
+        uses: actions/upload-artifact@v4
+        if: always() && hashFiles('snyk-report.json') != ''
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: 'chore(deps): update dependencies'
-          branch: dependency-updates
-          delete-branch: true
-          title: 'chore(deps): automated dependency updates'
-          body: |
-            ## Automated Dependency Updates
+          name: snyk-report-${{ github.sha }}
+          path: snyk-report.json
+          retention-days: 30
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v4
+        if: always() && hashFiles('agramkow-api/sbom.json') != ''
+        with:
+          name: sbom-${{ github.sha }}
+          path: agramkow-api/sbom.json
+          retention-days: 90
+
+      - name: Upload license report
+        uses: actions/upload-artifact@v4
+        if: always() && hashFiles('agramkow-api/snyk-licenses.json') != ''
+        with:
+          name: snyk-licenses-${{ github.sha }}
+          path: agramkow-api/snyk-licenses.json
+          retention-days: 30
+
+      - name: Evaluate security gate
+        if: always() && hashFiles('snyk-report.json') != ''
+        run: |
+          if [ -f snyk-report.json ]; then
+            CRITICAL=$(jq '[.vulnerabilities[]? | select(.severity=="critical")] | length' snyk-report.json 2>/dev/null || echo "0")
+            HIGH=$(jq '[.vulnerabilities[]? | select(.severity=="high")] | length' snyk-report.json 2>/dev/null || echo "0")
             
-            This PR contains automated dependency updates for patch and minor versions.
+            BRANCH_NAME="${GITHUB_REF##*/}"
             
-            ### Changes
-            
-            - Updated npm dependencies to latest compatible versions
-            - Applied automated security fixes
-            
-            ### Testing
-            
-            - Automated tests have been run
-            - Please review changes before merging
-            
-            ### Notes
-            
-            This PR was automatically created by GitHub Actions.
-            Review the changes and merge if tests pass.
-          labels: |
-            dependencies
-            automated
+            if [ "$BRANCH_NAME" = "main" ]; then
+              if [ "$CRITICAL" -gt "0" ] || [ "$HIGH" -gt "0" ]; then
+                echo "Security gate: FAILED"
+                echo "Production branch cannot have CRITICAL or HIGH vulnerabilities"
+                exit 1
+              fi
+            fi
+          fi
 
       - name: Generate summary
         if: always()
         run: |
-          echo "## Dependency Update Summary" >> $GITHUB_STEP_SUMMARY
+          echo "## Dependency Security Scan Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          if [ "${{ steps.changes.outputs.has_changes }}" = "true" ]; then
-            echo "**Status:** Updates available" >> $GITHUB_STEP_SUMMARY
+          if [ -f snyk-report.json ]; then
+            CRITICAL=$(jq '[.vulnerabilities[]? | select(.severity=="critical")] | length' snyk-report.json 2>/dev/null || echo "0")
+            HIGH=$(jq '[.vulnerabilities[]? | select(.severity=="high")] | length' snyk-report.json 2>/dev/null || echo "0")
+            MEDIUM=$(jq '[.vulnerabilities[]? | select(.severity=="medium")] | length' snyk-report.json 2>/dev/null || echo "0")
+            LOW=$(jq '[.vulnerabilities[]? | select(.severity=="low")] | length' snyk-report.json 2>/dev/null || echo "0")
+            
+            echo "**Vulnerability Summary:**" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "A pull request has been created with dependency updates." >> $GITHUB_STEP_SUMMARY
+            echo "| Severity | Count |" >> $GITHUB_STEP_SUMMARY
+            echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+            echo "| Critical | $CRITICAL |" >> $GITHUB_STEP_SUMMARY
+            echo "| High | $HIGH |" >> $GITHUB_STEP_SUMMARY
+            echo "| Medium | $MEDIUM |" >> $GITHUB_STEP_SUMMARY
+            echo "| Low | $LOW |" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            
+            if [ "$CRITICAL" -gt "0" ] || [ "$HIGH" -gt "0" ]; then
+              echo "**Action Required:** High or Critical vulnerabilities detected." >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "Run \`npm audit fix\` or \`snyk wizard\` to address vulnerabilities." >> $GITHUB_STEP_SUMMARY
+            fi
+          elif [ -z "${{ secrets.SNYK_TOKEN }}" ]; then
+            echo "**SNYK Not Configured**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "To enable Snyk scanning:" >> $GITHUB_STEP_SUMMARY
+            echo "1. Sign up at https://snyk.io" >> $GITHUB_STEP_SUMMARY
+            echo "2. Get your API token from Account Settings" >> $GITHUB_STEP_SUMMARY
+            echo "3. Add SNYK_TOKEN to repository secrets" >> $GITHUB_STEP_SUMMARY
+            echo "4. Re-run this workflow" >> $GITHUB_STEP_SUMMARY
           else
-            echo "**Status:** Up to date" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "All dependencies are already up to date." >> $GITHUB_STEP_SUMMARY
+            echo "SNYK scan not completed. Check logs for details." >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -f agramkow-api/sbom.json ]; then
+            COMP_COUNT=$(jq '.components | length' agramkow-api/sbom.json 2>/dev/null || echo "0")
+            echo "**Software Bill of Materials (SBOM):**" >> $GITHUB_STEP_SUMMARY
+            echo "- Total components: $COMP_COUNT" >> $GITHUB_STEP_SUMMARY
+            echo "- Format: CycloneDX 1.4 JSON" >> $GITHUB_STEP_SUMMARY
+            echo "- Compliance: EU Cyber Resilience Act Article 15" >> $GITHUB_STEP_SUMMARY
           fi
           
           echo "" >> $GITHUB_STEP_SUMMARY
