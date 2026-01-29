@@ -11,7 +11,7 @@ RUN npm run build
 FROM node:25.5.0-alpine
 WORKDIR /app
 COPY package*.json ./
-RUN npm update -g tar@7.5.7
+RUN npm install -g tar@7.5.7
 RUN npm ci --omit=dev
 COPY --from=builder /app/dist ./dist
 EXPOSE 3000
