@@ -1,7 +1,11 @@
 # NestJS Project - Agramkow
+
+# Node modules - IGNORE ALL OF THEM
+**/node_modules/
+node_modules/
+
 # compiled output
 agramkow-api/dist
-agramkow-api/node_modules
 agramkow-api/build
 
 # Logs
@@ -55,11 +59,10 @@ pids
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
-agramkow-api/package-lock.json
+
+# IDE files
 .idea/workspace.xml
 .idea/vcs.xml
 .idea/prettier.xml
 .idea/inspectionProfiles/Project_Default.xml
-.idea/workspace.xml
-.idea/workspace.xml
 /.idea
