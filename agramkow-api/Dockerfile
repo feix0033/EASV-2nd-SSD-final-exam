@@ -1,26 +1,18 @@
-# Single stage build for simplicity
-FROM node:20-alpine
+# Build stage for Agramkow API
+FROM node:20-alpine AS builder
 
-# Set working directory
 WORKDIR /app
-
-# Copy package files
 COPY package*.json ./
-
-# Install dependencies
-RUN npm ci --omit=dev
-
-# Copy application source
+RUN npm ci
 COPY . .
-
-# Build the application
 RUN npm run build
 
-# Expose application port
+# Production stage
+FROM node:20-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --omit=dev
+COPY --from=builder /app/dist ./dist
 EXPOSE 3000
-
-# Set environment
 ENV NODE_ENV=production
-
-# Run the application
 CMD ["node", "dist/main.js"]
