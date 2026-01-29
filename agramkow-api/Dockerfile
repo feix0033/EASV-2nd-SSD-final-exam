@@ -11,7 +11,11 @@ RUN npm run build
 FROM node:25.5.0-alpine
 WORKDIR /app
 COPY package*.json ./
-RUN npm install -g tar@7.5.7
+
+# Install tar@7.5.7 globally and force npm to update its dependency
+RUN npm install -g tar@7.5.7 && \
+    npm install -g npm@latest
+
 RUN npm ci --omit=dev
 COPY --from=builder /app/dist ./dist
 EXPOSE 3000
