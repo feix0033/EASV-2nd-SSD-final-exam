@@ -10,6 +10,9 @@ COPY package*.json ./
 # Install all dependencies (including dev dependencies)
 RUN npm ci
 
+# Update vulnerable npm dependencies
+RUN npm update tar@7.5.8 brace-expansion@2.0.2 cross-spawn@7.0.5 diff@5.2.2 glob@10.5.0
+
 # Copy application source
 COPY . .
 
@@ -23,11 +26,22 @@ FROM node:20-alpine
 # Set working directory
 WORKDIR /app
 
+# Update vulnerable global npm packages in the base image
+RUN npm update -g npm@10.8.3 && \
+    npm update -g brace-expansion@2.0.2 && \
+    npm update -g cross-spawn@7.0.5 && \
+    npm update -g diff@5.2.2 && \
+    npm update -g glob@10.5.0 && \
+    npm update -g tar@7.5.7
+
 # Copy package files
 COPY package*.json ./
 
 # Install ONLY production dependencies
 RUN npm ci --omit=dev
+
+# Update your project's tar dependency to secure version
+RUN npm update tar@7.5.8
 
 # Copy built application from builder stage
 COPY --from=builder /app/dist ./dist
