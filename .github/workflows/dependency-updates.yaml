@@ -34,6 +34,15 @@ jobs:
         working-directory: agramkow-api
         run: npm ci
 
+      - name: Check for SNYK_TOKEN
+        id: check_token
+        run: |
+          if [ -n "${{ secrets.SNYK_TOKEN || '' }}" ]; then
+            echo "token_available=true" >> $GITHUB_OUTPUT
+          else
+            echo "token_available=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Run Snyk to check for vulnerabilities
         uses: snyk/actions/node@master
         continue-on-error: true
@@ -42,7 +51,7 @@ jobs:
         with:
           args: --severity-threshold=low --json-file-output=snyk-report.json
           command: test
-        if: ${{ secrets.SNYK_TOKEN != '' }}
+        if: steps.check_token.outputs.token_available == 'true'
 
       - name: Generate SARIF report
         uses: snyk/actions/node@master
@@ -52,11 +61,11 @@ jobs:
         with:
           args: --sarif-file-output=snyk.sarif
           command: test
-        if: ${{ secrets.SNYK_TOKEN != '' }}
+        if: steps.check_token.outputs.token_available == 'true'
 
       - name: Upload Snyk results to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@v3
-        if: ${{ always() && secrets.SNYK_TOKEN != '' && hashFiles('snyk.sarif') != '' }}
+        if: always() && steps.check_token.outputs.token_available == 'true' && hashFiles('snyk.sarif') != ''
         with:
           sarif_file: snyk.sarif
           category: snyk-dependencies
@@ -69,33 +78,31 @@ jobs:
         with:
           command: monitor
           args: --project-name=${{ github.repository }}/${{ github.ref_name }}
-        if: ${{ github.event_name != 'pull_request' && secrets.SNYK_TOKEN != '' }}
+        if: github.event_name != 'pull_request' && steps.check_token.outputs.token_available == 'true'
 
       - name: Generate SBOM with Snyk
         working-directory: agramkow-api
         continue-on-error: true
         run: |
-          if [ -n "$SNYK_TOKEN" ]; then
-            npm install -g snyk
-            snyk auth $SNYK_TOKEN
-            snyk sbom --format=cyclonedx1.4 --json-file-output=sbom.json || true
-          fi
+          npm install -g snyk
+          snyk auth $SNYK_TOKEN
+          snyk sbom --format=cyclonedx1.4 --json-file-output=sbom.json || true
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        if: steps.check_token.outputs.token_available == 'true'
 
       - name: Check for license compliance
         working-directory: agramkow-api
         continue-on-error: true
         run: |
-          if [ -n "$SNYK_TOKEN" ]; then
-            snyk test --json --severity-threshold=low > snyk-licenses.json || true
-          fi
+          snyk test --json --severity-threshold=low > snyk-licenses.json || true
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        if: steps.check_token.outputs.token_available == 'true'
 
       - name: Upload Snyk report
         uses: actions/upload-artifact@v4
-        if: ${{ always() && hashFiles('snyk-report.json') != '' }}
+        if: always() && hashFiles('snyk-report.json') != ''
         with:
           name: snyk-report-${{ github.sha }}
           path: snyk-report.json
@@ -103,7 +110,7 @@ jobs:
 
       - name: Upload SBOM
         uses: actions/upload-artifact@v4
-        if: ${{ always() && hashFiles('agramkow-api/sbom.json') != '' }}
+        if: always() && hashFiles('agramkow-api/sbom.json') != ''
         with:
           name: sbom-${{ github.sha }}
           path: agramkow-api/sbom.json
@@ -111,14 +118,14 @@ jobs:
 
       - name: Upload license report
         uses: actions/upload-artifact@v4
-        if: ${{ always() && hashFiles('agramkow-api/snyk-licenses.json') != '' }}
+        if: always() && hashFiles('agramkow-api/snyk-licenses.json') != ''
         with:
           name: snyk-licenses-${{ github.sha }}
           path: agramkow-api/snyk-licenses.json
           retention-days: 30
 
       - name: Evaluate security gate
-        if: ${{ always() && hashFiles('snyk-report.json') != '' }}
+        if: always() && hashFiles('snyk-report.json') != ''
         run: |
           if [ -f snyk-report.json ]; then
             CRITICAL=$(jq '[.vulnerabilities[]? | select(.severity=="critical")] | length' snyk-report.json 2>/dev/null || echo "0")
@@ -136,7 +143,7 @@ jobs:
           fi
 
       - name: Generate summary
-        if: ${{ always() }}
+        if: always()
         run: |
           echo "## Dependency Security Scan Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
