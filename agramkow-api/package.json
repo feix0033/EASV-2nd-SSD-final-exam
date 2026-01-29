@@ -27,7 +27,6 @@
     "axios": "^1.13.4",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.3",
-    "lodash": "^4.17.23",
     "multer": "^2.0.2",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
@@ -59,6 +58,11 @@
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.20.0"
+  },
+  "overrides": {
+    "@nestjs/swagger": {
+      "lodash": "4.17.23"
+    }
   },
   "jest": {
     "moduleFileExtensions": [
