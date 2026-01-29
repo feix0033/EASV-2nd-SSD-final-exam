@@ -1,5 +1,5 @@
 # Build stage for Agramkow API
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 
 # Set working directory
 WORKDIR /app
@@ -11,7 +11,7 @@ COPY package*.json ./
 RUN npm ci
 
 # Update vulnerable npm dependencies
-RUN npm update tar@7.5.8 brace-expansion@2.0.2 cross-spawn@7.0.5 diff@5.2.2 glob@10.5.0
+RUN npm update brace-expansion@2.0.2 cross-spawn@7.0.5 diff@5.2.2 glob@10.5.0
 
 # Copy application source
 COPY . .
@@ -39,9 +39,6 @@ COPY package*.json ./
 
 # Install ONLY production dependencies
 RUN npm ci --omit=dev
-
-# Update your project's tar dependency to secure version
-RUN npm update tar@7.5.8
 
 # Copy built application from builder stage
 COPY --from=builder /app/dist ./dist
