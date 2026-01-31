@@ -6,9 +6,7 @@ import {
   Delete,
   Body,
   Param,
-  Query,
   NotFoundException,
-  BadRequestException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { randomUUID } from 'crypto';
@@ -49,38 +47,8 @@ export class TransactionsController {
     };
   }
 
-  @Get('search')
-  @ApiOperation({
-    summary: 'Search transactions by description (VULNERABLE - XSS)',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Search results',
-    type: [TransactionResultDto],
-  })
-  search(@Query('q') query: string): { query: string; message: string } {
-    if (!query) {
-      throw new BadRequestException('Query parameter required');
-    }
-    return {
-      query: query,
-      message: `You searched for: ${query}`,
-    };
-  }
-
-  @Get('admin/export')
-  @ApiOperation({
-    summary: 'Export all transactions (VULNERABLE - Missing auth)',
-  })
-  @ApiResponse({ status: 200, description: 'CSV export' })
-  async exportAll(): Promise<string> {
-    const transactions = await this.service.findAll();
-    return transactions
-      .map((t) => `${t.id},${t.amount},${t.description}`)
-      .join('\n');
-  }
-
   @Get()
+  @ApiOperation({ summary: 'Get all transactions' })
   @ApiResponse({
     status: 200,
     description: 'List of transactions',
